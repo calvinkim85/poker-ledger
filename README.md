@@ -51,8 +51,7 @@ git commit -m "what changed"
 git push
 ```
 
-GitHub Pages rebuilds automatically. The change is live in **under a minute** — measured, not
-estimated. Two things worth knowing:
+GitHub Pages rebuilds automatically. The change is live in **about 45 seconds** — measured on this repo, not estimated. Two things worth knowing:
 
 - Browsers cache hard. If you don't see the change, hard-refresh (**⌘⇧R**). An installed
   home-screen app may need closing and reopening.

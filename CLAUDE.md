@@ -33,7 +33,7 @@ sh test/run.sh            # 135 assertions; the gate before any push
 git commit -am "..." && git push
 ```
 
-Pages redeploys on push and is live in well under a minute.
+Pages redeploys on push; measured push-to-live latency on this repo is ~45s.
 
 ## Tests
 
