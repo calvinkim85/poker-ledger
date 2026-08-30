@@ -1,0 +1,19 @@
+{
+  "name": "Poker Ledger",
+  "short_name": "Poker Ledger",
+  "description": "Track poker buy-ins and cash-outs for 2-9 players, then work out who pays whom.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#14523c",
+  "theme_color": "#14523c",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

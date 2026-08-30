@@ -1,0 +1,1446 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Poker Ledger</title>
+<meta name="description" content="Track poker buy-ins and cash-outs for 2-9 players, then work out who pays whom.">
+<meta name="theme-color" content="#14523c">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Poker Ledger">
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'%3E%3Crect width='180' height='180' rx='40' fill='%2314523c'/%3E%3Cpath d='M90 34c-14 20-42 34-42 58a26 26 0 0 0 42 20 26 26 0 0 0 42-20c0-24-28-38-42-58z' fill='%23fcfaf5'/%3E%3Cpath d='M84 112c2 14-4 22-10 28h32c-6-6-12-14-10-28z' fill='%23fcfaf5'/%3E%3C/svg%3E">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'%3E%3Crect width='180' height='180' rx='40' fill='%2314523c'/%3E%3Cpath d='M90 34c-14 20-42 34-42 58a26 26 0 0 0 42 20 26 26 0 0 0 42-20c0-24-28-38-42-58z' fill='%23fcfaf5'/%3E%3Cpath d='M84 112c2 14-4 22-10 28h32c-6-6-12-14-10-28z' fill='%23fcfaf5'/%3E%3C/svg%3E">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:opsz,wght@6..96,500;6..96,700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap">
+
+<style>
+  :root{
+    --display:'Bodoni Moda',Didot,'Bodoni MT',Georgia,serif;
+    --body:'IBM Plex Sans','Helvetica Neue',Arial,sans-serif;
+    --mono:'IBM Plex Mono','SFMono-Regular',Consolas,monospace;
+
+    --felt:#1d6b4f;
+    --felt-deep:#14523c;
+    --rail:#6b3f22;
+    --card:#fbf7ef;
+    --card-edge:#ddd2bd;
+    --card-sunk:#f2ebdd;
+    --ink:#22201c;
+    --ink-soft:#7a7264;
+    --gold:#b48b3c;
+    --win:#1c7a4f;
+    --loss:#b23b34;
+    --flat:#7a7264;
+    --alert:#a5642a;
+    --alert-bg:#fdf1df;
+    --ok-bg:#e9f5ed;
+    --chip:#f4ede0;
+    --chip-edge:#c8b998;
+    --shadow:rgba(10,26,20,.42);
+    --on-felt:#fcfaf5;
+    --on-felt-dim:#dfe8e2;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --felt:#0d3527;
+      --felt-deep:#07231a;
+      --rail:#2e1c10;
+      --card:#161c1a;
+      --card-edge:#2c3a35;
+      --card-sunk:#101614;
+      --ink:#eee7da;
+      --ink-soft:#93a09a;
+      --gold:#d8b061;
+      --win:#5fcf94;
+      --loss:#f0776c;
+      --flat:#93a09a;
+      --alert:#eca85e;
+      --alert-bg:#2a1f10;
+      --ok-bg:#10261b;
+      --chip:#1d2623;
+      --chip-edge:#3a4a44;
+      --shadow:rgba(0,0,0,.6);
+      --on-felt:#eef3ef;
+      --on-felt-dim:#a9bbb2;
+    }
+  }
+  :root[data-theme="dark"]{
+    --felt:#0d3527;
+    --felt-deep:#07231a;
+    --rail:#2e1c10;
+    --card:#161c1a;
+    --card-edge:#2c3a35;
+    --card-sunk:#101614;
+    --ink:#eee7da;
+    --ink-soft:#93a09a;
+    --gold:#d8b061;
+    --win:#5fcf94;
+    --loss:#f0776c;
+    --flat:#93a09a;
+    --alert:#eca85e;
+    --alert-bg:#2a1f10;
+    --ok-bg:#10261b;
+    --chip:#1d2623;
+    --chip-edge:#3a4a44;
+    --shadow:rgba(0,0,0,.6);
+    --on-felt:#eef3ef;
+    --on-felt-dim:#a9bbb2;
+  }
+
+  *{ box-sizing:border-box; }
+
+  body{
+    margin:0;
+    color:var(--ink);
+    font-family:var(--body);
+    background-color:var(--felt);
+    background-image:
+      radial-gradient(circle at 50% 0%, color-mix(in srgb, var(--felt) 55%, #ffffff) 0%, transparent 62%),
+      repeating-linear-gradient(45deg, color-mix(in srgb, var(--felt-deep) 40%, transparent) 0 2px, transparent 2px 6px);
+    min-height:100vh;
+  }
+  img{ max-width:100%; }
+  [hidden]{ display:none !important; }
+
+  .table{
+    max-width:840px;
+    margin:clamp(12px,3vw,44px) auto;
+    padding:0 clamp(10px,2.4vw,20px) clamp(40px,6vw,70px);
+  }
+
+  /* ---- header ---- */
+  .rail{
+    background:var(--card);
+    border:1px solid var(--card-edge);
+    border-radius:14px;
+    box-shadow:0 20px 44px -26px var(--shadow);
+    padding:clamp(16px,3vw,24px) clamp(16px,3vw,26px);
+    display:flex;
+    align-items:center;
+    gap:14px;
+    flex-wrap:wrap;
+  }
+  .brand{ flex:1 1 auto; min-width:0; }
+  .suits{
+    font-size:.86rem;
+    letter-spacing:.32em;
+    color:var(--gold);
+    margin-bottom:2px;
+  }
+  h1{
+    font-family:var(--display);
+    font-weight:700;
+    font-size:clamp(1.6rem,3.4vw+.7rem,2.5rem);
+    line-height:1.05;
+    margin:0;
+    letter-spacing:.01em;
+  }
+  .sub{
+    font-family:var(--mono);
+    font-size:.6rem;
+    letter-spacing:.19em;
+    text-transform:uppercase;
+    color:var(--ink-soft);
+    margin-top:6px;
+  }
+  .lbl{
+    font-family:var(--mono);
+    font-size:.57rem;
+    letter-spacing:.19em;
+    text-transform:uppercase;
+    color:var(--ink-soft);
+    display:block;
+  }
+
+  /* ---- buttons ---- */
+  .btn{
+    font-family:var(--mono);
+    text-transform:uppercase;
+    letter-spacing:.13em;
+    font-size:.66rem;
+    padding:11px 15px;
+    border:1.5px solid var(--card-edge);
+    border-radius:8px;
+    background:var(--card);
+    color:var(--ink);
+    cursor:pointer;
+    transition:background .15s ease, color .15s ease, border-color .15s ease;
+  }
+  .btn:hover:not(:disabled){ background:var(--ink); color:var(--card); border-color:var(--ink); }
+  .btn:focus-visible{ outline:2px solid var(--gold); outline-offset:2px; }
+  .btn:disabled{ opacity:.35; cursor:not-allowed; }
+  .btn.primary{
+    background:var(--felt-deep);
+    border-color:var(--felt-deep);
+    color:var(--on-felt);
+    font-size:.76rem;
+    padding:15px 22px;
+  }
+  .btn.primary:hover:not(:disabled){ background:var(--ink); border-color:var(--ink); color:var(--card); }
+  .btn.ghost{ background:transparent; }
+  .btn.tiny{ font-size:.58rem; padding:8px 11px; }
+
+  /* ---- setup bar ---- */
+  .setup{
+    margin-top:clamp(12px,2vw,16px);
+    background:var(--card);
+    border:1px solid var(--card-edge);
+    border-radius:14px;
+    box-shadow:0 20px 44px -26px var(--shadow);
+    padding:clamp(14px,2.4vw,20px) clamp(16px,3vw,26px);
+    display:flex;
+    align-items:flex-end;
+    gap:14px;
+    flex-wrap:wrap;
+  }
+  .field{ display:flex; flex-direction:column; gap:5px; }
+  .money{
+    position:relative;
+    display:flex;
+    align-items:center;
+  }
+  .money .cur{
+    position:absolute;
+    left:11px;
+    font-family:var(--mono);
+    font-size:.82rem;
+    color:var(--ink-soft);
+    pointer-events:none;
+    white-space:nowrap;
+  }
+  input[type="text"],input[type="number"]{
+    font-family:var(--mono);
+    font-size:.95rem;
+    color:var(--ink);
+    background:var(--card-sunk);
+    border:1.5px solid var(--card-edge);
+    border-radius:8px;
+    padding:11px 12px;
+    width:100%;
+    -moz-appearance:textfield;
+  }
+  input::-webkit-outer-spin-button,input::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0; }
+  input:focus-visible{ outline:2px solid var(--gold); outline-offset:1px; }
+  /* --cur-pad is set from JS to the measured symbol width, so "CN¥" and "$"
+     both clear the digits. */
+  .money input{ padding-left:var(--cur-pad,24px); font-variant-numeric:tabular-nums; }
+  input.bad{ border-color:var(--loss); background:color-mix(in srgb, var(--loss) 12%, var(--card-sunk)); }
+  .w-default{ width:150px; }
+  select#currency{
+    font-family:var(--mono);
+    font-size:.82rem;
+    color:var(--ink);
+    background:var(--card-sunk);
+    border:1.5px solid var(--card-edge);
+    border-radius:8px;
+    padding:11px 12px;
+    cursor:pointer;
+    min-width:190px;
+  }
+  select#currency:focus-visible{ outline:2px solid var(--gold); outline-offset:1px; }
+
+  .notice{
+    margin:10px 0 0;
+    background:var(--alert-bg);
+    border:1.5px solid var(--alert);
+    border-radius:10px;
+    padding:11px 14px;
+    font-size:.86rem;
+    line-height:1.5;
+    color:var(--ink);
+  }
+  .setup .spacer{ flex:1 1 auto; }
+  .field.grow{ flex:1 1 300px; min-width:240px; gap:3px; position:relative; }
+  .check-row{ display:flex; align-items:center; gap:7px; }
+  .term{ border-bottom:1px dotted var(--ink-soft); cursor:help; }
+  .info{
+    flex:none;
+    width:19px; height:19px;
+    border-radius:50%;
+    border:1.5px solid var(--card-edge);
+    background:var(--card-sunk);
+    color:var(--ink-soft);
+    font-family:var(--mono);
+    font-size:.66rem;
+    line-height:1;
+    padding:0;
+    cursor:pointer;
+    display:grid;
+    place-items:center;
+  }
+  .info:hover,.info[aria-expanded="true"]{
+    background:var(--felt-deep);
+    border-color:var(--felt-deep);
+    color:var(--on-felt);
+  }
+  .info:focus-visible{ outline:2px solid var(--gold); outline-offset:2px; }
+
+  .tip{
+    position:absolute;
+    top:calc(100% + 8px);
+    left:0;
+    z-index:20;
+    width:min(380px, calc(100vw - 44px));
+    background:var(--card);
+    border:1.5px solid var(--card-edge);
+    border-radius:12px;
+    box-shadow:0 26px 54px -22px var(--shadow);
+    padding:15px 17px;
+    font-size:.82rem;
+    line-height:1.6;
+    color:var(--ink);
+  }
+  .tip b{ display:block; font-size:.58rem; font-family:var(--mono);
+          letter-spacing:.19em; text-transform:uppercase; color:var(--ink-soft);
+          margin-bottom:8px; }
+  .tip p{ margin:0 0 9px; }
+  .tip .eg{
+    display:flex; flex-direction:column; gap:4px;
+    background:var(--card-sunk);
+    border-left:2.5px solid var(--gold);
+    border-radius:0 8px 8px 0;
+    padding:10px 12px;
+    margin:11px 0 9px;
+    font-family:var(--mono);
+    font-size:.73rem;
+    line-height:1.55;
+  }
+  .tip .eg b{ display:inline; font-family:var(--mono); font-size:.73rem;
+              letter-spacing:0; text-transform:none; color:var(--ink); margin:0; }
+  .tip .eg-h{ color:var(--ink-soft); letter-spacing:.04em; }
+  .tip .tip-foot{ margin:0; color:var(--ink-soft); font-size:.76rem; }
+  .check{
+    display:flex;
+    align-items:center;
+    gap:9px;
+    cursor:pointer;
+    font-size:.92rem;
+    font-weight:600;
+  }
+  .check input{
+    width:17px; height:17px;
+    accent-color:var(--felt);
+    cursor:pointer;
+    flex:none;
+  }
+  .check input:focus-visible{ outline:2px solid var(--gold); outline-offset:2px; }
+  .hint{
+    font-size:.75rem;
+    line-height:1.5;
+    color:var(--ink-soft);
+    max-width:46ch;
+  }
+  .count{
+    font-family:var(--mono);
+    font-size:.66rem;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    color:var(--ink-soft);
+    white-space:nowrap;
+  }
+  .count b{ color:var(--ink); font-size:.86rem; }
+
+  /* ---- player rows ---- */
+  .players{ margin-top:clamp(12px,2vw,16px); display:flex; flex-direction:column; gap:10px; }
+  .seat{
+    background:var(--card);
+    border:1px solid var(--card-edge);
+    border-radius:14px;
+    box-shadow:0 18px 40px -28px var(--shadow);
+    padding:clamp(13px,2.2vw,18px) clamp(14px,2.6vw,20px);
+    display:grid;
+    grid-template-columns:1fr auto;
+    gap:12px 16px;
+    align-items:start;
+  }
+  .seat-head{ display:flex; align-items:center; gap:10px; min-width:0; }
+  .seat-no{
+    font-family:var(--mono);
+    font-size:.62rem;
+    color:var(--ink-soft);
+    border:1.5px solid var(--card-edge);
+    border-radius:50%;
+    width:26px; height:26px;
+    display:grid; place-items:center;
+    flex:none;
+  }
+  .seat-head input{ font-family:var(--body); font-weight:600; font-size:1rem; padding:9px 11px; }
+  .seat-tools{ display:flex; align-items:center; gap:8px; }
+
+  .stakes{
+    grid-column:1 / -1;
+    display:grid;
+    grid-template-columns:1fr;
+    gap:12px;
+    border-top:1px solid var(--card-edge);
+    padding-top:12px;
+  }
+  @media (min-width:660px){
+    .stakes{ grid-template-columns:1fr 190px; align-items:start; }
+  }
+
+  .chips{ display:flex; flex-wrap:wrap; align-items:center; gap:7px; margin-top:6px; }
+  .chip{
+    position:relative;
+    display:inline-flex;
+    align-items:center;
+    background:var(--chip);
+    border:1.5px dashed var(--chip-edge);
+    border-radius:999px;
+    padding-left:9px;
+  }
+  .chip input{
+    width:64px;
+    border:0;
+    background:transparent;
+    padding:8px 2px 8px 8px;
+    font-size:.85rem;
+    text-align:right;
+    font-variant-numeric:tabular-nums;
+  }
+  .chip input:focus-visible{ outline:2px solid var(--gold); outline-offset:1px; border-radius:4px; }
+  .chip .cur{ font-family:var(--mono); font-size:.72rem; color:var(--ink-soft); }
+  .chip .x{
+    border:0;
+    background:transparent;
+    color:var(--ink-soft);
+    cursor:pointer;
+    font-size:1rem;
+    line-height:1;
+    padding:8px 10px 8px 4px;
+    border-radius:999px;
+  }
+  .chip .x:hover{ color:var(--loss); }
+  .chip .x:focus-visible{ outline:2px solid var(--gold); outline-offset:-2px; }
+  .chip.bad{ border-color:var(--loss); border-style:solid; }
+  .no-chips{
+    font-family:var(--mono);
+    font-size:.68rem;
+    color:var(--ink-soft);
+    padding:8px 0;
+  }
+
+  .tally{
+    display:flex;
+    gap:18px;
+    justify-content:flex-start;
+    font-family:var(--mono);
+    font-variant-numeric:tabular-nums;
+    margin-top:10px;
+  }
+  @media (min-width:660px){
+    .tally{ flex-direction:column; gap:10px; margin-top:0; }
+  }
+  .tally div{ min-width:0; }
+  .tally .v{ font-size:1.02rem; font-weight:600; display:block; margin-top:2px; }
+  .v.up{ color:var(--win); }
+  .v.down{ color:var(--loss); }
+  .v.flat{ color:var(--flat); }
+
+  /* ---- actions ---- */
+  .actions{
+    margin-top:clamp(14px,2.4vw,20px);
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+    align-items:center;
+  }
+  .actions .spacer{ flex:1 1 auto; }
+
+  /* ---- results ---- */
+  .result{
+    margin-top:clamp(14px,2.4vw,20px);
+    background:var(--card);
+    border:1px solid var(--card-edge);
+    border-radius:14px;
+    box-shadow:0 22px 50px -26px var(--shadow);
+    padding:clamp(16px,3vw,26px);
+  }
+  .result h2{
+    font-family:var(--display);
+    font-weight:700;
+    font-size:1.5rem;
+    margin:0 0 4px;
+  }
+  .banner{
+    border-radius:10px;
+    padding:13px 15px;
+    margin:14px 0 18px;
+    font-size:.92rem;
+    line-height:1.55;
+    border:1.5px solid var(--card-edge);
+    background:var(--card-sunk);
+  }
+  .banner.ok{ border-color:var(--win); background:var(--ok-bg); }
+  .banner.warn{ border-color:var(--alert); background:var(--alert-bg); }
+  .banner b{ font-family:var(--mono); font-variant-numeric:tabular-nums; }
+  .banner .head{
+    display:block;
+    font-family:var(--mono);
+    font-size:.6rem;
+    letter-spacing:.19em;
+    text-transform:uppercase;
+    margin-bottom:5px;
+    color:var(--ink-soft);
+  }
+  .banner.warn .head{ color:var(--alert); }
+  .banner.ok .head{ color:var(--win); }
+
+  ol.transfers{ list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:8px; }
+  ol.transfers li{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    flex-wrap:wrap;
+    background:var(--card-sunk);
+    border:1.5px solid var(--card-edge);
+    border-radius:10px;
+    padding:12px 14px;
+    font-size:.98rem;
+  }
+  ol.transfers .who{ font-weight:700; }
+  ol.transfers .arrow{ color:var(--gold); font-family:var(--mono); }
+  ol.transfers .amt{
+    margin-left:auto;
+    font-family:var(--mono);
+    font-weight:600;
+    font-variant-numeric:tabular-nums;
+    font-size:1.05rem;
+  }
+  .none{ font-size:.95rem; color:var(--ink-soft); }
+
+  table.summary{
+    width:100%;
+    border-collapse:collapse;
+    margin-top:20px;
+    font-family:var(--mono);
+    font-size:.85rem;
+  }
+  .summary caption{
+    text-align:left;
+    font-size:.57rem;
+    letter-spacing:.19em;
+    text-transform:uppercase;
+    color:var(--ink-soft);
+    margin-bottom:8px;
+  }
+  .summary th,.summary td{
+    border-bottom:1.5px solid var(--card-edge);
+    padding:9px 8px;
+    text-align:right;
+    font-variant-numeric:tabular-nums;
+  }
+  .summary th:first-child,.summary td:first-child{ text-align:left; font-family:var(--body); }
+  .summary thead th{
+    font-size:.55rem;
+    font-weight:500;
+    letter-spacing:.11em;
+    text-transform:uppercase;
+    color:var(--ink-soft);
+  }
+  .summary tfoot td{ font-weight:600; border-bottom:0; border-top:1.5px solid var(--ink); }
+
+  .foot{
+    margin-top:clamp(18px,3vw,26px);
+    font-family:var(--mono);
+    font-size:.64rem;
+    line-height:1.85;
+    letter-spacing:.02em;
+    color:var(--on-felt-dim);
+    text-align:center;
+  }
+
+  @media (max-width:560px){
+    .seat{ grid-template-columns:1fr; }
+    .seat-tools{ justify-content:flex-end; }
+    .actions .btn{ flex:1 1 auto; }
+    .actions .btn.primary{ flex-basis:100%; }
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    *{ transition-duration:.01ms !important; animation-duration:.01ms !important; }
+  }
+</style>
+</head>
+<body>
+
+<main class="table">
+
+  <header class="rail">
+    <div class="brand">
+      <div class="suits">&spades; &hearts; &diams; &clubs;</div>
+      <h1>Poker Ledger</h1>
+      <div class="sub">Buy-ins &middot; Cash-outs &middot; Who pays whom</div>
+    </div>
+    <button class="btn ghost" id="themeBtn" type="button" aria-label="Change colour scheme">
+      <span id="themeName">Auto</span>
+    </button>
+  </header>
+
+  <section class="setup">
+    <div class="field">
+      <label class="lbl" for="currency">Currency</label>
+      <select id="currency"></select>
+    </div>
+    <div class="field">
+      <label class="lbl" for="defaultBuyIn">Standard buy-in</label>
+      <div class="money w-default">
+        <span class="cur" id="defaultCur">$</span>
+        <input type="text" id="defaultBuyIn" inputmode="decimal" value="20.00">
+      </div>
+    </div>
+    <div class="field grow">
+      <div class="check-row">
+        <label class="check">
+          <input type="checkbox" id="absorb">
+          <span class="term" id="absorbTerm">Cover the gap from the top</span>
+        </label>
+        <button class="info" type="button" id="absorbInfo"
+                aria-expanded="false" aria-controls="absorbTip"
+                aria-label="How covering the gap works">?</button>
+      </div>
+      <span class="hint">Lands the difference on whoever finished ahead, without changing
+        anyone's place.</span>
+
+      <div class="tip" id="absorbTip" role="tooltip" hidden>
+        <b>How it works</b>
+        <p>A chip count that doesn't match the buy-ins leaves money belonging to nobody.
+          Turn this on and that difference lands on the players who finished ahead,
+          starting at the top.</p>
+        <p>One runaway winner covers it alone &mdash; they're far enough clear that paying
+          it doesn't cost them first place.</p>
+        <p>When the leaders finish close together, letting one of them absorb it all would
+          drop them below the other. So they chop it instead: half each for two, thirds for
+          three, quarters for four.</p>
+        <p>Either way nobody swaps places. The biggest winner is still the biggest winner,
+          second is still second &mdash; only the amounts move.</p>
+        <div class="eg">
+          <span class="eg-h">Alice +$40 &middot; Bob +$32</span>
+          <span><b>$4</b> unaccounted &rarr; Alice covers it alone &rarr; +$36 / +$32</span>
+          <span><b>$10</b> &rarr; alone she'd fall behind Bob, so they halve it &rarr; +$35 / +$27</span>
+        </div>
+        <p class="tip-foot">Chips come up <em>short</em> instead? Same idea on the other
+          side &mdash; the biggest loser's debt comes down first.</p>
+      </div>
+    </div>
+    <div class="spacer"></div>
+    <div class="count">Players <b id="countOut">0</b> / 9</div>
+    <button class="btn" id="addBtn" type="button">+ Add player</button>
+  </section>
+
+  <p class="notice" id="notice" hidden role="status"></p>
+
+  <section class="players" id="players"></section>
+
+  <div class="actions">
+    <button class="btn primary" id="calcBtn" type="button">Calculate settlement</button>
+    <div class="spacer"></div>
+    <button class="btn ghost" id="newBtn" type="button">New game</button>
+    <button class="btn ghost" id="clearBtn" type="button">Clear all</button>
+  </div>
+
+  <section class="result" id="result" hidden aria-live="polite"></section>
+
+  <!-- Reserved for an ad unit. Stays hidden and occupies no space until a unit is
+       placed here; see ADSENSE.md. Nothing is loaded from Google today. -->
+  <aside class="adslot" id="adslot" hidden aria-hidden="true"></aside>
+
+  <footer class="foot">
+    Everything stays in this browser &mdash; nothing is uploaded.
+  </footer>
+
+</main>
+
+<script>
+(function(){
+  "use strict";
+
+  var KEY = "poker.ledger.v1";
+  var MIN_PLAYERS = 2, MAX_PLAYERS = 9;
+  var THEMES = ["dark","light"];
+  var THEME_LABEL = { dark:"Night", light:"Day" };
+  /* Read once to pick a starting side; the page never follows the OS after that. */
+  function systemTheme(){
+    try{
+      return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+    }catch(e){ return "dark"; }
+  }
+
+  var root = document.documentElement;
+  var playersEl = document.getElementById("players");
+  var resultEl = document.getElementById("result");
+  var countOut = document.getElementById("countOut");
+  var addBtn = document.getElementById("addBtn");
+  var calcBtn = document.getElementById("calcBtn");
+  var newBtn = document.getElementById("newBtn");
+  var clearBtn = document.getElementById("clearBtn");
+  var themeBtn = document.getElementById("themeBtn");
+  var themeName = document.getElementById("themeName");
+  var defaultInput = document.getElementById("defaultBuyIn");
+  var defaultCur = document.getElementById("defaultCur");
+  var currencySel = document.getElementById("currency");
+  var noticeEl = document.getElementById("notice");
+  var absorbBox = document.getElementById("absorb");
+  var absorbTerm = document.getElementById("absorbTerm");
+  var absorbInfo = document.getElementById("absorbInfo");
+  var absorbTip = document.getElementById("absorbTip");
+
+  /* Symbols are ours, not Intl's: in their own locales SGD formats as a bare "$"
+     (identical to USD) and CNY as "\u00a5" (identical to JPY). "dec" is the number of
+     minor units — yen and won have none. */
+  var CURRENCIES = {
+    USD:{ sym:"$",       name:"US dollar",        dec:2, loc:"en-US" },
+    EUR:{ sym:"\u20ac",      name:"Euro",             dec:2, loc:"en-IE" },
+    GBP:{ sym:"\u00a3",      name:"British pound",    dec:2, loc:"en-GB" },
+    SGD:{ sym:"S$",      name:"Singapore dollar", dec:2, loc:"en-SG" },
+    CNY:{ sym:"CN\u00a5",    name:"Chinese yuan",     dec:2, loc:"zh-CN" },
+    JPY:{ sym:"\u00a5",      name:"Japanese yen",     dec:0, loc:"ja-JP" },
+    KRW:{ sym:"\u20a9",      name:"Korean won",       dec:0, loc:"ko-KR" }
+  };
+  var CURRENCY_ORDER = ["USD","EUR","GBP","SGD","CNY","JPY","KRW"];
+
+  /* state: money is always an integer count of the active currency's smallest unit
+     — cents for USD, whole won for KRW. "" means the field is blank. */
+  var state = {
+    players: [],
+    defaultBuyIn: 2000,
+    currency: "USD",
+    absorb: false
+  };
+  var themeState = null;   /* resolved at boot from storage, else from the OS */
+
+  /* ---------- money ---------- */
+  function cur(){ return CURRENCIES[state.currency] || CURRENCIES.USD; }
+  function minor(code){
+    var c = CURRENCIES[code] || CURRENCIES.USD;
+    return Math.pow(10, c.dec);
+  }
+
+  /* parseMoney returns minor units, or null when the text is not a usable number.
+     Blank counts as 0 so an empty cash-out reads as "busted", not as an error.
+     Any symbol or grouping separator is stripped, so pasted amounts just work. */
+  function parseMoney(text){
+    var raw = String(text == null ? "" : text).trim();
+    if(raw === "") return 0;
+    /* Drop grouping separators, then a symbol run at either edge — so "CN\u00a51,250.50"
+       and "50.00 USD" both parse, while interior junk like "12abc34" still fails. */
+    var t = raw.replace(/[\s,'\u00a0\u2019]/g, "")
+               .replace(/^[^\d.\-]+/, "")
+               .replace(/[^\d.]+$/, "");
+    if(t === "" || t === "." || t === "-") return null;
+    if(!/^-?\d*\.?\d*$/.test(t)) return null;
+    var n = parseFloat(t);
+    if(!isFinite(n) || n < 0) return null;
+    return Math.round(n * minor(state.currency));
+  }
+  function fmt(units){
+    var c = cur();
+    var sign = units < 0 ? "-" : "";
+    var major = Math.abs(units) / Math.pow(10, c.dec);
+    var digits;
+    try{
+      digits = new Intl.NumberFormat(c.loc, {
+        minimumFractionDigits: c.dec, maximumFractionDigits: c.dec
+      }).format(major);
+    }catch(e){
+      digits = major.toFixed(c.dec);
+    }
+    return sign + c.sym + digits;
+  }
+  function fmtSigned(units){
+    if(units === 0) return fmt(0);
+    return (units > 0 ? "+" : "") + fmt(units);
+  }
+  function toInput(units){ return (units / Math.pow(10, cur().dec)).toFixed(cur().dec); }
+
+  /* Switching currency relabels, it does not convert: $20 becomes \u20a920. Values are
+     re-quantized to the new precision, which is lossy going into a zero-decimal
+     currency — the caller warns when that actually changed something. */
+  function convertAll(from, to){
+    var mf = minor(from), mt = minor(to);
+    var changed = false;
+    function re(units){
+      var out = Math.round(units / mf * mt);
+      if(Math.round(out / mt * mf) !== units) changed = true;
+      return out;
+    }
+    state.players.forEach(function(p){
+      p.buyIns = p.buyIns.map(re);
+      p.cashOut = re(p.cashOut);
+    });
+    state.defaultBuyIn = re(state.defaultBuyIn);
+    return changed;
+  }
+
+  /* ---------- persistence ---------- */
+  function save(){
+    try{
+      localStorage.setItem(KEY, JSON.stringify({
+        players: state.players.map(function(p){
+          return { name:p.name, buyIns:p.buyIns.slice(), cashOut:p.cashOut };
+        }),
+        defaultBuyIn: state.defaultBuyIn,
+        currency: state.currency,
+        absorb: state.absorb,
+        theme: themeState
+      }));
+    }catch(e){}
+  }
+  function load(){
+    try{
+      var s = JSON.parse(localStorage.getItem(KEY) || "null");
+      if(!s) return false;
+      if(THEMES.indexOf(s.theme) >= 0) themeState = s.theme;
+      else if(s.theme === "auto") themeState = systemTheme();
+      state.currency = CURRENCIES[s.currency] ? s.currency : "USD";
+      state.absorb = s.absorb === true;
+      if(typeof s.defaultBuyIn === "number" && isFinite(s.defaultBuyIn) && s.defaultBuyIn >= 0){
+        state.defaultBuyIn = Math.round(s.defaultBuyIn);
+      }
+      if(!Array.isArray(s.players) || s.players.length < MIN_PLAYERS) return false;
+      state.players = s.players.slice(0, MAX_PLAYERS).map(function(p, i){
+        return {
+          name: typeof p.name === "string" ? p.name.slice(0, 40) : "Player " + (i + 1),
+          buyIns: (Array.isArray(p.buyIns) ? p.buyIns : []).map(function(c){
+            return (typeof c === "number" && isFinite(c) && c >= 0) ? Math.round(c) : 0;
+          }),
+          cashOut: (typeof p.cashOut === "number" && isFinite(p.cashOut) && p.cashOut >= 0) ? Math.round(p.cashOut) : 0
+        };
+      });
+      return true;
+    }catch(e){ return false; }
+  }
+
+  /* ---------- currency ---------- */
+  function buildCurrencyPicker(){
+    CURRENCY_ORDER.forEach(function(code){
+      var c = CURRENCIES[code];
+      var o = document.createElement("option");
+      o.value = code;
+      o.textContent = c.sym + "  " + code + " \u2014 " + c.name;
+      currencySel.appendChild(o);
+    });
+  }
+
+  /* The symbol sits over the input, so the padding has to follow its width.
+     Both faces are monospaced, which makes ch an exact measure. */
+  function applyCurrency(){
+    var c = cur();
+    currencySel.value = state.currency;
+    defaultCur.textContent = c.sym;
+    document.documentElement.style.setProperty(
+      "--cur-pad", "calc(" + c.sym.length + "ch + 17px)"
+    );
+    defaultInput.inputMode = c.dec === 0 ? "numeric" : "decimal";
+  }
+
+  function showNotice(text){
+    if(!text){ noticeEl.hidden = true; noticeEl.textContent = ""; return; }
+    noticeEl.textContent = text;
+    noticeEl.hidden = false;
+  }
+
+  currencySel.addEventListener("change", function(){
+    var from = state.currency;
+    var to = CURRENCIES[currencySel.value] ? currencySel.value : "USD";
+    if(to === from) return;
+    var rounded = convertAll(from, to);
+    state.currency = to;
+    applyCurrency();
+    hideResult();          /* a settlement priced in the old currency must not linger */
+    save();
+    render();
+    showNotice(rounded
+      ? "Amounts were rounded to whole " + cur().name.toLowerCase() + "."
+      : "");
+  });
+
+  /* ---------- theme ---------- */
+  function applyTheme(){
+    root.setAttribute("data-theme", themeState);
+    themeName.textContent = THEME_LABEL[themeState];
+  }
+  themeBtn.addEventListener("click", function(){
+    themeState = THEMES[(THEMES.indexOf(themeState) + 1) % THEMES.length];
+    applyTheme();
+    save();
+  });
+
+  /* ---------- player helpers ---------- */
+  function makePlayer(i){
+    return { name:"Player " + (i + 1), buyIns:[state.defaultBuyIn], cashOut:0 };
+  }
+  function totalIn(p){
+    return p.buyIns.reduce(function(a, c){ return a + c; }, 0);
+  }
+  function netOf(p){ return p.cashOut - totalIn(p); }
+
+  /* ---------- settlement ---------- */
+  /* Divide a gap equally among the fewest top players that can take it without
+     disturbing the order — the leader alone if they are clear enough, otherwise half
+     each, then thirds, then fourths. Equal shares leave every gap between the players
+     unchanged, which is what keeps the ranking intact; the search below only has to
+     decide who is in the group. Mutates `mags`, returns what each index gave up. */
+  function splitFromTop(mags, total){
+    var taken = mags.map(function(){ return 0; });
+    var order = mags.map(function(v, i){ return i; })
+                    .sort(function(a, b){ return mags[b] - mags[a]; });
+    var n = order.length;
+    if(total <= 0 || !n) return taken;
+
+    /* The group's lowest member pays the odd unit, so test against ceil, not floor.
+       Below the last winner there is nobody to tie with, so ending at exactly zero is
+       allowed — that is what comparing against -1 means. */
+    for(var k = 1; k <= n; k++){
+      var share = Math.ceil(total / k);
+      var below = k < n ? mags[order[k]] : -1;
+      if(mags[order[k - 1]] - share > below){
+        var per = Math.floor(total / k), rem = total % k;
+        for(var i = 0; i < k; i++){
+          /* the extra unit goes to the BOTTOM of the group: giving it to the leader
+             is what could put them a unit behind second place */
+          var cut = per + (i >= k - rem ? 1 : 0);
+          mags[order[i]] -= cut;
+          taken[order[i]] += cut;
+        }
+        return taken;
+      }
+    }
+
+    /* No group can take it and stay ranked — the gap outruns the winnings. Split it
+       across everyone, zeroing whoever cannot cover their share and re-dividing the
+       remainder among the rest. Only reachable on a wild miscount. */
+    var active = order.slice(), left = total;
+    while(left > 0 && active.length){
+      var k2 = active.length, per2 = Math.floor(left / k2);
+      var lowest = mags[active[k2 - 1]];
+      if(lowest > per2 || (lowest === per2 && left % k2 === 0)){
+        var rem2 = left % k2;
+        for(var a = 0; a < k2; a++){
+          var cut2 = per2 + (a >= k2 - rem2 ? 1 : 0);
+          mags[active[a]] -= cut2;
+          taken[active[a]] += cut2;
+        }
+        left = 0;
+      }else{
+        var idx = active.pop();
+        left -= mags[idx];
+        taken[idx] += mags[idx];
+        mags[idx] = 0;
+      }
+    }
+    return taken;
+  }
+
+  /* Close a chip-count gap by levelling it off the top. Which side pays depends on the
+     sign: when the chips claim more than went in (diff > 0) the winners are claiming
+     money that is not there, so their profits come down; when the chips come up short
+     (diff < 0) the losers owe more than anyone is claiming, so their debts come down.
+     Either way the adjusted nets sum to exactly zero — see the note in CLAUDE.md. */
+  function absorbGap(entries, diff){
+    if(!diff) return { entries:entries, taken:{}, side:null };
+    var winners = diff > 0;
+    var pick = [];
+    entries.forEach(function(e, i){
+      if(winners ? e.net > 0 : e.net < 0) pick.push(i);
+    });
+    if(!pick.length) return { entries:entries, taken:{}, side:null };
+
+    var mags = pick.map(function(i){ return Math.abs(entries[i].net); });
+    var cuts = splitFromTop(mags, Math.abs(diff));
+
+    var taken = {};
+    var out = entries.map(function(e){ return { name:e.name, net:e.net }; });
+    pick.forEach(function(entryIdx, j){
+      if(!cuts[j]) return;
+      taken[entryIdx] = cuts[j];
+      out[entryIdx].net = winners ? mags[j] : -mags[j];
+    });
+    return { entries:out, taken:taken, side:winners ? "winners" : "losers" };
+  }
+
+  /* Greedy debtor/creditor matching: at most n-1 transfers. When the books do not
+     balance the two sides cannot both empty, and the leftover is the discrepancy. */
+  function settle(players){
+    return settleNets(players.map(function(p){
+      return { name:p.name, net:netOf(p) };
+    }));
+  }
+  function settleNets(entries){
+    var creditors = [], debtors = [];
+    entries.forEach(function(e){
+      var n = e.net;
+      if(n > 0) creditors.push({ name:e.name, amt:n });
+      else if(n < 0) debtors.push({ name:e.name, amt:-n });
+    });
+    creditors.sort(function(a, b){ return b.amt - a.amt; });
+    debtors.sort(function(a, b){ return b.amt - a.amt; });
+
+    var transfers = [];
+    var ci = 0, di = 0;
+    while(ci < creditors.length && di < debtors.length){
+      var c = creditors[ci], d = debtors[di];
+      var amt = Math.min(c.amt, d.amt);
+      if(amt > 0) transfers.push({ from:d.name, to:c.name, cents:amt });
+      c.amt -= amt;
+      d.amt -= amt;
+      if(c.amt === 0) ci++;
+      if(d.amt === 0) di++;
+    }
+
+    var unpaid = creditors.slice(ci).filter(function(c){ return c.amt > 0; });
+    var unowed = debtors.slice(di).filter(function(d){ return d.amt > 0; });
+    return { transfers:transfers, unpaid:unpaid, unowed:unowed };
+  }
+
+  function listNames(arr){
+    var names = arr.map(function(x){ return x.name + " (" + fmt(x.amt) + ")"; });
+    if(names.length === 1) return names[0];
+    return names.slice(0, -1).join(", ") + " and " + names[names.length - 1];
+  }
+
+  /* ---------- rendering ---------- */
+  function el(tag, cls, text){
+    var n = document.createElement(tag);
+    if(cls) n.className = cls;
+    if(text != null) n.textContent = text;
+    return n;
+  }
+
+  function render(){
+    playersEl.textContent = "";
+    state.players.forEach(function(p, idx){
+      playersEl.appendChild(renderSeat(p, idx));
+    });
+    countOut.textContent = state.players.length;
+    addBtn.disabled = state.players.length >= MAX_PLAYERS;
+    defaultInput.value = toInput(state.defaultBuyIn);
+    absorbBox.checked = state.absorb;
+    updateTally();
+  }
+
+  function renderSeat(p, idx){
+    var seat = el("section", "seat");
+
+    var head = el("div", "seat-head");
+    head.appendChild(el("span", "seat-no", String(idx + 1)));
+    var name = el("input");
+    name.type = "text";
+    name.value = p.name;
+    name.maxLength = 40;
+    name.setAttribute("aria-label", "Name of player " + (idx + 1));
+    name.addEventListener("input", function(){
+      p.name = name.value;
+      save();
+    });
+    head.appendChild(name);
+    seat.appendChild(head);
+
+    var tools = el("div", "seat-tools");
+    var rebuy = el("button", "btn tiny", "+ Rebuy");
+    rebuy.type = "button";
+    rebuy.addEventListener("click", function(){
+      p.buyIns.push(state.defaultBuyIn);
+      save();
+      render();
+      var chips = playersEl.children[idx].querySelectorAll(".chip input");
+      if(chips.length) chips[chips.length - 1].focus();
+    });
+    tools.appendChild(rebuy);
+
+    var remove = el("button", "btn tiny ghost", "Remove");
+    remove.type = "button";
+    remove.disabled = state.players.length <= MIN_PLAYERS;
+    remove.setAttribute("aria-label", "Remove " + (p.name || "player " + (idx + 1)));
+    remove.addEventListener("click", function(){
+      state.players.splice(idx, 1);
+      hideResult();
+      save();
+      render();
+    });
+    tools.appendChild(remove);
+    seat.appendChild(tools);
+
+    /* --- stakes --- */
+    var stakes = el("div", "stakes");
+
+    var left = el("div");
+    left.appendChild(el("span", "lbl", "Buy-ins"));
+    var chips = el("div", "chips");
+    if(!p.buyIns.length){
+      chips.appendChild(el("span", "no-chips", "No buy-in yet — press Rebuy"));
+    }
+    p.buyIns.forEach(function(cents, ci){
+      chips.appendChild(renderChip(p, ci, idx));
+    });
+    left.appendChild(chips);
+
+    var cashWrap = el("div");
+    cashWrap.style.marginTop = "14px";
+    var cashLbl = el("span", "lbl", "Cash out at the end");
+    cashWrap.appendChild(cashLbl);
+    var money = el("div", "money");
+    money.style.maxWidth = "170px";
+    money.style.marginTop = "6px";
+    var cash = el("input");
+    cash.type = "text";
+    cash.inputMode = cur().dec === 0 ? "numeric" : "decimal";
+    cash.value = toInput(p.cashOut);
+    cash.setAttribute("aria-label", "Cash out for player " + (idx + 1));
+    cash.addEventListener("input", function(){
+      var c = parseMoney(cash.value);
+      cash.classList.toggle("bad", c === null);
+      if(c !== null){ p.cashOut = c; save(); updateTally(); }
+    });
+    cash.addEventListener("blur", function(){
+      if(parseMoney(cash.value) !== null) cash.value = toInput(p.cashOut);
+    });
+    money.appendChild(cash);
+    cashWrap.appendChild(money);
+    left.appendChild(cashWrap);
+    stakes.appendChild(left);
+
+    var tally = el("div", "tally");
+    var inBox = el("div");
+    inBox.appendChild(el("span", "lbl", "Total in"));
+    var inVal = el("span", "v");
+    inVal.dataset.role = "in";
+    inBox.appendChild(inVal);
+    tally.appendChild(inBox);
+
+    var netBox = el("div");
+    netBox.appendChild(el("span", "lbl", "Net"));
+    var netVal = el("span", "v");
+    netVal.dataset.role = "net";
+    netBox.appendChild(netVal);
+    tally.appendChild(netBox);
+    stakes.appendChild(tally);
+
+    seat.appendChild(stakes);
+    return seat;
+  }
+
+  function renderChip(p, ci, idx){
+    var chip = el("span", "chip");
+    chip.appendChild(el("span", "cur", cur().sym));
+    var inp = el("input");
+    inp.type = "text";
+    inp.inputMode = cur().dec === 0 ? "numeric" : "decimal";
+    inp.value = toInput(p.buyIns[ci]);
+    inp.setAttribute("aria-label", "Buy-in " + (ci + 1) + " for player " + (idx + 1));
+    inp.addEventListener("input", function(){
+      var c = parseMoney(inp.value);
+      chip.classList.toggle("bad", c === null);
+      if(c !== null){ p.buyIns[ci] = c; save(); updateTally(); }
+    });
+    inp.addEventListener("blur", function(){
+      if(parseMoney(inp.value) !== null) inp.value = toInput(p.buyIns[ci]);
+    });
+    chip.appendChild(inp);
+
+    var x = el("button", "x", "×");
+    x.type = "button";
+    x.setAttribute("aria-label", "Remove buy-in " + (ci + 1) + " for player " + (idx + 1));
+    x.addEventListener("click", function(){
+      p.buyIns.splice(ci, 1);
+      hideResult();
+      save();
+      render();
+    });
+    chip.appendChild(x);
+    return chip;
+  }
+
+  /* Live totals without a full re-render, so focus and caret survive typing. */
+  function updateTally(){
+    Array.prototype.forEach.call(playersEl.children, function(seat, i){
+      var p = state.players[i];
+      if(!p) return;
+      var inVal = seat.querySelector('[data-role="in"]');
+      var netVal = seat.querySelector('[data-role="net"]');
+      var net = netOf(p);
+      if(inVal) inVal.textContent = fmt(totalIn(p));
+      if(netVal){
+        netVal.textContent = fmtSigned(net);
+        netVal.className = "v " + (net > 0 ? "up" : net < 0 ? "down" : "flat");
+      }
+    });
+  }
+
+  function hideResult(){
+    resultEl.hidden = true;
+    resultEl.textContent = "";
+  }
+
+  /* ---------- calculate ---------- */
+  function calculate(){
+    var players = state.players;
+    var potIn = 0, potOut = 0;
+    players.forEach(function(p){ potIn += totalIn(p); potOut += p.cashOut; });
+    var diff = potOut - potIn;
+
+    var raw = players.map(function(p, i){
+      return { name:p.name || "Player " + (i + 1), net:netOf(p) };
+    });
+    var adj = (state.absorb && diff !== 0) ? absorbGap(raw, diff)
+                                           : { entries:raw, taken:{}, side:null };
+    var absorbed = adj.side !== null;
+    var res = settleNets(adj.entries);
+
+    resultEl.textContent = "";
+    resultEl.hidden = false;
+    resultEl.appendChild(el("h2", null, "Settlement \u00b7 " + state.currency));
+
+    /* --- discrepancy banner --- */
+    var banner = el("div", "banner " + (diff === 0 ? "ok" : "warn"));
+    if(diff === 0){
+      banner.appendChild(el("span", "head", "Books balance"));
+      banner.appendChild(document.createTextNode(
+        "Total bought in and total cashed out both come to " + fmt(potIn) + ". Everything is accounted for."
+      ));
+    }else{
+      banner.appendChild(el("span", "head", diff < 0 ? "Table is short" : "Table is over"));
+      var msg = el("div");
+      msg.appendChild(document.createTextNode("Bought in " + fmt(potIn) + ", cashed out " + fmt(potOut) + " — a difference of "));
+      var b = el("b", null, fmt(Math.abs(diff)));
+      msg.appendChild(b);
+      msg.appendChild(document.createTextNode(diff < 0
+        ? ". There is less on the table than went in, so chips are missing or a cash-out was under-counted."
+        : ". There are more chips than money in, so a buy-in probably was not recorded."));
+      banner.appendChild(msg);
+
+      var short = el("div");
+      short.style.marginTop = "8px";
+      if(absorbed){
+        var who = Object.keys(adj.taken).map(function(k){
+          return { name:raw[k].name, amt:adj.taken[k] };
+        }).sort(function(a, b){ return b.amt - a.amt; });
+        short.textContent = (adj.side === "winners"
+          ? "Split from the top: " + listNames(who) + " gave up that much of the win, so the payments below settle exactly. Everyone finishes in the order they placed."
+          : "Split from the top: " + listNames(who) + " owes that much less, so the payments below settle exactly. Everyone finishes in the order they placed.");
+      }else if(res.unpaid.length){
+        short.textContent = "Even after every payment below, " + listNames(res.unpaid) + " still cannot be paid in full.";
+      }else if(res.unowed.length){
+        short.textContent = "Even after every payment below, " + listNames(res.unowed) + " still owes money with nobody to pay.";
+      }
+      if(short.textContent) banner.appendChild(short);
+    }
+    resultEl.appendChild(banner);
+
+    /* --- transfers --- */
+    if(!res.transfers.length){
+      resultEl.appendChild(el("p", "none",
+        potIn === 0 && potOut === 0
+          ? "Nothing entered yet — add buy-ins and cash-outs, then calculate."
+          : "Nobody owes anybody. Everyone finished level."));
+    }else{
+      var ol = el("ol", "transfers");
+      res.transfers.forEach(function(t){
+        var li = el("li");
+        li.appendChild(el("span", "who", t.from || "Unnamed"));
+        li.appendChild(el("span", "arrow", "→"));
+        li.appendChild(el("span", "who", t.to || "Unnamed"));
+        li.appendChild(el("span", "amt", fmt(t.cents)));
+        ol.appendChild(li);
+      });
+      resultEl.appendChild(ol);
+    }
+
+    /* --- summary table --- */
+    var rows = players.map(function(p, i){
+      return { name:raw[i].name, inn:totalIn(p), out:p.cashOut,
+               net:raw[i].net, adjNet:adj.entries[i].net, cut:adj.taken[i] || 0 };
+    }).sort(function(a, b){ return b.net - a.net; });
+
+    var tbl = el("table", "summary");
+    var cap = el("caption", null, "Every seat");
+    tbl.appendChild(cap);
+    var thead = el("thead");
+    var hr = el("tr");
+    var heads = ["Player","Bought in","Cashed out","Net"];
+    if(absorbed) heads.push("After the split");
+    heads.forEach(function(h){ hr.appendChild(el("th", null, h)); });
+    thead.appendChild(hr);
+    tbl.appendChild(thead);
+
+    var tbody = el("tbody");
+    rows.forEach(function(r){
+      var tr = el("tr");
+      tr.appendChild(el("td", null, r.name));
+      tr.appendChild(el("td", null, fmt(r.inn)));
+      tr.appendChild(el("td", null, fmt(r.out)));
+      var td = el("td", null, fmtSigned(r.net));
+      td.style.color = r.net > 0 ? "var(--win)" : r.net < 0 ? "var(--loss)" : "var(--flat)";
+      if(absorbed) td.style.opacity = ".55";
+      tr.appendChild(td);
+      if(absorbed){
+        var ad = el("td", null, fmtSigned(r.adjNet) + (r.cut ? "  (-" + fmt(r.cut) + ")" : ""));
+        ad.style.color = r.adjNet > 0 ? "var(--win)" : r.adjNet < 0 ? "var(--loss)" : "var(--flat)";
+        if(r.cut) ad.style.fontWeight = "600";
+        tr.appendChild(ad);
+      }
+      tbody.appendChild(tr);
+    });
+    tbl.appendChild(tbody);
+
+    var tfoot = el("tfoot");
+    var fr = el("tr");
+    fr.appendChild(el("td", null, "Table"));
+    fr.appendChild(el("td", null, fmt(potIn)));
+    fr.appendChild(el("td", null, fmt(potOut)));
+    fr.appendChild(el("td", null, fmtSigned(diff)));
+    if(absorbed) fr.appendChild(el("td", null, fmt(0)));
+    tfoot.appendChild(fr);
+    tbl.appendChild(tfoot);
+    resultEl.appendChild(tbl);
+
+    /* --- copy --- */
+    var copyRow = el("div", "actions");
+    var copy = el("button", "btn", "Copy settlement");
+    copy.type = "button";
+    copy.addEventListener("click", function(){
+      var text = settlementText(res, rows, potIn, potOut, diff, absorbed, adj);
+      var done = function(){
+        copy.textContent = "Copied";
+        setTimeout(function(){ copy.textContent = "Copy settlement"; }, 1600);
+      };
+      var fail = function(){
+        copy.textContent = "Press ⌘C";
+        setTimeout(function(){ copy.textContent = "Copy settlement"; }, 1600);
+      };
+      if(navigator.clipboard && navigator.clipboard.writeText){
+        navigator.clipboard.writeText(text).then(done, fail);
+      }else{ fail(); }
+    });
+    copyRow.appendChild(copy);
+    resultEl.appendChild(copyRow);
+
+    resultEl.scrollIntoView({ behavior:"smooth", block:"nearest" });
+  }
+
+  function settlementText(res, rows, potIn, potOut, diff, absorbed, adj){
+    var lines = ["POKER SETTLEMENT", "All amounts in " + state.currency + " (" + cur().name + ")", ""];
+    if(res.transfers.length){
+      res.transfers.forEach(function(t){
+        lines.push(t.from + " pays " + t.to + " " + fmt(t.cents));
+      });
+    }else{
+      lines.push("No payments needed — everyone finished level.");
+    }
+    lines.push("", "Net by player:");
+    rows.forEach(function(r){
+      lines.push("  " + r.name + ": " + fmtSigned(r.net) + "  (in " + fmt(r.inn) + ", out " + fmt(r.out) + ")"
+        + (absorbed && r.cut ? "  -> " + fmtSigned(r.adjNet) + " after the split" : ""));
+    });
+    lines.push("", "Total in " + fmt(potIn) + " / total out " + fmt(potOut));
+    if(diff !== 0){
+      lines.push("WARNING: table is " + (diff < 0 ? "short" : "over") + " by " + fmt(Math.abs(diff)));
+      if(absorbed){
+        lines.push("The gap was split between the top " + adj.side + ", so the payments above settle exactly.");
+      }
+    }
+    return lines.join("\n");
+  }
+
+  /* ---------- controls ---------- */
+  addBtn.addEventListener("click", function(){
+    if(state.players.length >= MAX_PLAYERS) return;
+    state.players.push(makePlayer(state.players.length));
+    hideResult();
+    save();
+    render();
+    var seats = playersEl.children;
+    var last = seats[seats.length - 1].querySelector('.seat-head input');
+    if(last) last.select();
+  });
+
+  calcBtn.addEventListener("click", calculate);
+
+  /* The explainer opens on hover for a mouse, on focus for a keyboard, and stays
+     pinned open when the "?" is tapped — hover does not exist on a phone, which is
+     where this page mostly gets used. */
+  var tipPinned = false;
+  function showTip(){
+    absorbTip.hidden = false;
+    absorbInfo.setAttribute("aria-expanded", "true");
+  }
+  function hideTip(force){
+    if(tipPinned && !force) return;
+    tipPinned = false;
+    absorbTip.hidden = true;
+    absorbInfo.setAttribute("aria-expanded", "false");
+  }
+  [absorbTerm, absorbInfo].forEach(function(el2){
+    el2.addEventListener("mouseenter", showTip);
+    el2.addEventListener("mouseleave", function(){ hideTip(); });
+  });
+  absorbInfo.addEventListener("click", function(){
+    if(tipPinned) hideTip(true);
+    else { tipPinned = true; showTip(); }
+  });
+  absorbInfo.addEventListener("focus", showTip);
+  absorbBox.addEventListener("focus", showTip);
+  absorbBox.addEventListener("blur", function(){ hideTip(); });
+  absorbInfo.addEventListener("blur", function(){ if(!tipPinned) hideTip(); });
+  document.addEventListener("keydown", function(e){
+    if(e.key === "Escape" && !absorbTip.hidden){ hideTip(true); absorbInfo.focus(); }
+  });
+  document.addEventListener("click", function(e){
+    if(tipPinned && !absorbTip.contains(e.target) && !absorbInfo.contains(e.target)){
+      hideTip(true);
+    }
+  });
+
+  absorbBox.addEventListener("change", function(){
+    state.absorb = absorbBox.checked;
+    hideResult();      /* a settlement computed under the other setting must not linger */
+    save();
+  });
+
+  newBtn.addEventListener("click", function(){
+    if(!confirm("Start a new game? Names stay, buy-ins and cash-outs reset.")) return;
+    showNotice("");
+    state.players.forEach(function(p){
+      p.buyIns = [state.defaultBuyIn];
+      p.cashOut = 0;
+    });
+    hideResult();
+    save();
+    render();
+  });
+
+  clearBtn.addEventListener("click", function(){
+    if(!confirm("Clear everything and start from two empty seats?")) return;
+    showNotice("");
+    state.players = [makePlayer(0), makePlayer(1)];
+    hideResult();
+    save();
+    render();
+  });
+
+  defaultInput.addEventListener("input", function(){
+    var c = parseMoney(defaultInput.value);
+    defaultInput.classList.toggle("bad", c === null);
+    if(c !== null){ state.defaultBuyIn = c; save(); }
+  });
+  defaultInput.addEventListener("blur", function(){
+    if(parseMoney(defaultInput.value) !== null) defaultInput.value = toInput(state.defaultBuyIn);
+  });
+
+  /* ---------- boot ---------- */
+  if(!load()){
+    state.players = [makePlayer(0), makePlayer(1)];
+  }
+  if(!themeState) themeState = systemTheme();
+  applyTheme();
+  buildCurrencyPicker();
+  applyCurrency();
+  render();
+})();
+</script>
+
+</body>
+</html>
