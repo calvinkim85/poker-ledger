@@ -9,4 +9,3 @@
 # google.com, pub-0000000000000000, DIRECT, f08c47fec0942fa0
 #
 # See ADSENSE.md in this repository for the full checklist.
-# (edited on github.com to test the auto-zip hook)
