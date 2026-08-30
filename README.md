@@ -26,9 +26,8 @@ Everything runs in the browser. No accounts, no server, nothing uploaded.
 | `index.html` | The entire app — markup, styles, and script in one file. |
 | `manifest.webmanifest`, `icon.svg` | Home-screen install metadata. |
 | `robots.txt`, `sitemap.xml`, `og.png` | Search and social-preview metadata. |
-| `tools/make-zip.sh`, `.githooks/` | Keep `poker-ledger-project.zip` in step with the repo. |
-| `ads.txt` | Placeholder; see `ADSENSE.md`. |
-| `CLAUDE.md` | Architecture notes and the rules to follow when editing. |
+| `test/` | The suite; `sh test/run.sh` runs it. |
+| `ads.txt` | Placeholder; see *Putting ads on this* below. |
 
 ## Running it locally
 
@@ -89,34 +88,6 @@ migrations, and the site metadata — the canonical URL, Open Graph tags, sitema
 `robots.txt` are asserted to name the same site, so a domain change cannot half-land. They
 are the gate before any push.
 
-## The project zip
-
-`poker-ledger-project.zip` in this folder is a snapshot of the whole project, refreshed
-**automatically after every commit and every pull** by git hooks in `.githooks/`.
-
-It is built from `HEAD` with `git archive`, not from the working tree, which means it always
-contains exactly what is on GitHub. That is the point: a zip that could quietly differ from
-the deployed site would be worse than no zip at all.
-
-```sh
-sh tools/make-zip.sh      # rebuild by hand any time
-```
-
-Two things worth knowing:
-
-- **Uncommitted edits are not in it.** The zip tracks the last commit, so it updates when you
-  commit, not when you save. This is deliberate — it is what keeps the zip and GitHub
-  identical.
-- **Editing on github.com updates it on your next `git pull`**, via the `post-merge` hook.
-  Until you pull, the local zip describes the older version.
-
-The hooks are enabled per clone with `git config core.hooksPath .githooks`, already set here.
-The zip is git-ignored — committing a zip of the repo into the repo would add a fresh binary
-copy of everything to the history on every commit.
-
-GitHub also offers a **Download ZIP** button on the repo page, which is always current and
-needs no maintenance at all; the local zip exists so there is a copy on your own disk.
-
 ## Putting it on your own domain
 
 The free `github.io` URL works fine, but a domain you own is required for Google AdSense and
@@ -145,3 +116,106 @@ indexing**. Expect days to weeks before it appears — indexing can't be bought 
 
 Saved games live in the browser's own storage, so a night entered on your phone will **not**
 appear on your iPad. The app travels between devices; the data doesn't.
+
+---
+
+# Putting ads on this
+
+Nothing here loads any advertising today. This file is the honest version of what turning it
+on would take, and what to expect.
+
+### Read this part first
+
+Four things are worth knowing before you spend an afternoon on it.
+
+**AdSense will not accept a `github.io` address.** Google requires a site on a domain you own
+and control. The current free URL is a subdomain of `github.io`, which belongs to GitHub, so
+the application cannot succeed as things stand. A domain is roughly $10–15/year.
+
+**Single-purpose calculators are commonly rejected.** The most frequent AdSense rejection is
+"low value content," and a page that is one tool with almost no reading material is squarely
+in that category. ~~This site has that problem.~~ **Addressed:** the guide under the
+calculator covers settling a home game, why chip counts miss, and the house rules worth
+agreeing beforehand. Keep it that way — if it ever gets gutted, this problem comes back.
+
+**Poker is gambling-adjacent.** Google restricts gambling and games content, with rules that
+vary by country. This page tracks a friendly game and facilitates no wagering, so it is
+probably fine, but it is an additional reason a reviewer might say no. I can't predict that
+outcome.
+
+**The money is not real at this scale.** AdSense pays out at $100. A page used by a handful
+of friends once a month will not reach that in any reasonable timeframe. If the goal is to
+cover the domain cost, a "buy me a coffee" link will do better and won't slow the page down.
+
+None of this is a reason not to do it — it's a reason to do it with clear expectations.
+
+### What's already in place
+
+- **`ads.txt`** is served from the site root. It contains only comments; the real publisher
+  line goes in after approval. A test asserts it stays comment-only.
+- **A reserved slot** — `<aside class="adslot" id="adslot" hidden>` sits below the
+  settlement in `index.html`. It is `hidden`, so it renders nothing and shifts no layout
+  until something is deliberately put in it.
+- **The guide** — roughly 1,000 words under the tool, addressing the "low value content"
+  problem directly. This was the single biggest obstacle and it is now done.
+- **`robots.txt`, `sitemap.xml`, canonical and Open Graph tags** — so the site is
+  crawlable and presents itself properly.
+
+What remains before an application is realistic: **a domain**, and enough of a track record
+that the site looks alive. Enabling ads after that is an edit, not a rebuild.
+
+### The steps, in order
+
+1. **Buy a domain.** Cloudflare Registrar sells at cost; Porkbun and Namecheap are fine too.
+   Note that Google Domains shut down in 2023 — the business went to Squarespace, so there is
+   no Google registrar to use.
+2. **Point it at GitHub Pages.** Add a `CNAME` file to this repo containing the bare domain,
+   then create these DNS records at your registrar:
+   - Four `A` records for the apex: `185.199.108.153`, `185.199.109.153`,
+     `185.199.110.153`, `185.199.111.153`
+   - One `CNAME` for `www` → `calvinkim85.github.io`
+   Then in the repo's **Settings → Pages**, set the custom domain and tick **Enforce HTTPS**.
+   Certificates take a few minutes to issue.
+3. ~~Add real content.~~ Done — see the guide in `index.html`.
+4. **Apply** at <https://adsense.google.com>. You'll add the site, paste a verification
+   snippet into `<head>`, and wait. Review commonly takes a few days and can take weeks.
+5. **On approval**, replace the contents of `ads.txt` with the single line AdSense gives you:
+   ```
+   google.com, pub-0000000000000000, DIRECT, f08c47fec0942fa0
+   ```
+6. **Then, and only then**, add the loader to `<head>`:
+   ```html
+   <script async crossorigin="anonymous"
+           src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-YOURID"></script>
+   ```
+   and fill the reserved slot with your unit, removing the `hidden` attribute.
+7. **Verify your address.** Google mails a PIN once you pass $10 in earnings; the account is
+   suspended until you enter it.
+
+Don't do step 6 before step 4 succeeds. An unapproved loader serves nothing and costs every
+visitor a round trip to Google on page load.
+
+### One thing that will not work
+
+The Claude artifact version of this page can never show ads. Its sandbox only permits scripts
+from a short allowlist of CDNs, and `pagead2.googlesyndication.com` isn't on it — the request
+is blocked with no visible error. GitHub Pages is the only one of the two that can carry
+advertising.
+
+### Not to be confused with Google Ads
+
+These are opposite transactions and the names invite mixing them up:
+
+- **AdSense** — Google pays *you* to show ads on your page. This document.
+- **Google Ads** — *you* pay Google to appear at the top of search results.
+
+If the goal is to be found quickly rather than to earn, Google Ads is the lever, and it costs
+money per click rather than earning it. Organic ranking is a third thing again: no money, but
+it needs content, links, and months.
+
+### Keeping the page fast
+
+If you do go ahead: load the script `async` (as above), keep to a single unit, and give its
+container a fixed `min-height` so the page doesn't jump when the ad arrives. The entire app
+is currently one ~50KB file with no dependencies, and one ad tag is comfortably the heaviest
+thing that would ever be on it.

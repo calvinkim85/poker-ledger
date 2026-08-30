@@ -1,4 +1,0 @@
-#!/bin/sh
-# A pull brought in commits from elsewhere (the github.com editor, another machine) —
-# refresh the zip so it does not silently describe an older version of the site.
-sh "$(git rev-parse --show-toplevel)/tools/make-zip.sh"
