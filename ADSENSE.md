@@ -13,9 +13,9 @@ the application cannot succeed as things stand. A domain is roughly $10–15/yea
 
 **Single-purpose calculators are commonly rejected.** The most frequent AdSense rejection is
 "low value content," and a page that is one tool with almost no reading material is squarely
-in that category. Passing review would mean adding genuine written content — rules for
-settling a home game, an explanation of the chip-count discrepancy problem, that sort of
-thing — not just flipping a switch.
+in that category. ~~This site has that problem.~~ **Addressed:** the guide under the
+calculator covers settling a home game, why chip counts miss, and the house rules worth
+agreeing beforehand. Keep it that way — if it ever gets gutted, this problem comes back.
 
 **Poker is gambling-adjacent.** Google restricts gambling and games content, with rules that
 vary by country. This page tracks a friendly game and facilitates no wagering, so it is
@@ -31,16 +31,23 @@ None of this is a reason not to do it — it's a reason to do it with clear expe
 ## What's already in place
 
 - **`ads.txt`** is served from the site root. It contains only comments; the real publisher
-  line goes in after approval.
+  line goes in after approval. A test asserts it stays comment-only.
 - **A reserved slot** — `<aside class="adslot" id="adslot" hidden>` sits below the
   settlement in `index.html`. It is `hidden`, so it renders nothing and shifts no layout
   until something is deliberately put in it.
+- **The guide** — roughly 1,000 words under the tool, addressing the "low value content"
+  problem directly. This was the single biggest obstacle and it is now done.
+- **`robots.txt`, `sitemap.xml`, canonical and Open Graph tags** — so the site is
+  crawlable and presents itself properly.
 
-Both mean that enabling ads later is an edit, not a rebuild.
+What remains before an application is realistic: **a domain**, and enough of a track record
+that the site looks alive. Enabling ads after that is an edit, not a rebuild.
 
 ## The steps, in order
 
 1. **Buy a domain.** Cloudflare Registrar sells at cost; Porkbun and Namecheap are fine too.
+   Note that Google Domains shut down in 2023 — the business went to Squarespace, so there is
+   no Google registrar to use.
 2. **Point it at GitHub Pages.** Add a `CNAME` file to this repo containing the bare domain,
    then create these DNS records at your registrar:
    - Four `A` records for the apex: `185.199.108.153`, `185.199.109.153`,
@@ -48,7 +55,7 @@ Both mean that enabling ads later is an edit, not a rebuild.
    - One `CNAME` for `www` → `calvinkim85.github.io`
    Then in the repo's **Settings → Pages**, set the custom domain and tick **Enforce HTTPS**.
    Certificates take a few minutes to issue.
-3. **Add real content**, for the reason in the second warning above.
+3. ~~Add real content.~~ Done — see the guide in `index.html`.
 4. **Apply** at <https://adsense.google.com>. You'll add the site, paste a verification
    snippet into `<head>`, and wait. Review commonly takes a few days and can take weeks.
 5. **On approval**, replace the contents of `ads.txt` with the single line AdSense gives you:
@@ -73,6 +80,17 @@ The Claude artifact version of this page can never show ads. Its sandbox only pe
 from a short allowlist of CDNs, and `pagead2.googlesyndication.com` isn't on it — the request
 is blocked with no visible error. GitHub Pages is the only one of the two that can carry
 advertising.
+
+## Not to be confused with Google Ads
+
+These are opposite transactions and the names invite mixing them up:
+
+- **AdSense** — Google pays *you* to show ads on your page. This document.
+- **Google Ads** — *you* pay Google to appear at the top of search results.
+
+If the goal is to be found quickly rather than to earn, Google Ads is the lever, and it costs
+money per click rather than earning it. Organic ranking is a third thing again: no money, but
+it needs content, links, and months.
 
 ## Keeping the page fast
 

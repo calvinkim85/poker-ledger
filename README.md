@@ -24,8 +24,8 @@ Everything runs in the browser. No accounts, no server, nothing uploaded.
 | File | What it is |
 |---|---|
 | `index.html` | The entire app — markup, styles, and script in one file. |
-| `tic-tac-toe.html` | An unrelated earlier page, at `/tic-tac-toe.html`. |
 | `manifest.webmanifest`, `icon.svg` | Home-screen install metadata. |
+| `robots.txt`, `sitemap.xml`, `og.png` | Search and social-preview metadata. |
 | `ads.txt` | Placeholder; see `ADSENSE.md`. |
 | `CLAUDE.md` | Architecture notes and the rules to follow when editing. |
 
@@ -43,9 +43,16 @@ the only remote resource; the app itself works offline.
 `index.html` in this folder is the only source of truth. There is no build output and no
 second copy to keep in sync.
 
+**Always `git pull` first.** The site can be edited from three places — this folder, github.com
+in a browser, or a Claude Code session — and pulling before you start is what stops two of
+them fighting. If you edit on github.com and then someone edits here without pulling, the
+push is rejected as non-fast-forward. Nothing is ever lost when that happens (everything is
+committed), but it is a merge you didn't need to do.
+
 ```sh
 # 1. edit index.html
 # 2. run the tests (see below)
+git pull
 git add -A
 git commit -m "what changed"
 git push
@@ -74,10 +81,36 @@ JavaScriptCore:
 osascript -l JavaScript test/<suite>.js
 ```
 
-135 assertions cover the money parsing and formatting, the settlement algorithm, the
+154 assertions cover the money parsing and formatting, the settlement algorithm, the
 gap-splitting rule (including a 400-table randomised property test asserting that the books
-always balance and nobody ever changes placing), currency switching, and the `localStorage`
-migrations. They are the gate before any push.
+always balance and nobody ever changes placing), currency switching, the `localStorage`
+migrations, and the site metadata — the canonical URL, Open Graph tags, sitemap and
+`robots.txt` are asserted to name the same site, so a domain change cannot half-land. They
+are the gate before any push.
+
+## Putting it on your own domain
+
+The free `github.io` URL works fine, but a domain you own is required for Google AdSense and
+looks better anywhere. Google Domains no longer exists — Google sold it to Squarespace in
+2023 — so register with Cloudflare (at cost), Porkbun, or Namecheap.
+
+1. Add a `CNAME` file to this repo containing just the bare domain.
+2. At the registrar, point the apex at GitHub with four `A` records — `185.199.108.153`,
+   `185.199.109.153`, `185.199.110.153`, `185.199.111.153` — and add a `CNAME` for `www`
+   pointing to `calvinkim85.github.io`.
+3. In **Settings → Pages**, set the custom domain and, once the certificate issues, tick
+   **Enforce HTTPS**.
+4. Update the canonical URL in `index.html`, plus `sitemap.xml` and `robots.txt`. The test
+   suite fails if you miss one.
+
+The old URL keeps working and redirects, so shared links don't break.
+
+## Getting it into Google
+
+`robots.txt`, `sitemap.xml` and the canonical tag are already in place. The rest needs your
+Google account: add the site at [Search Console](https://search.google.com/search-console),
+verify by DNS `TXT` record, submit `sitemap.xml`, then use **URL Inspection → Request
+indexing**. Expect days to weeks before it appears — indexing can't be bought or hurried.
 
 ## A known limitation
 

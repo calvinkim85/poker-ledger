@@ -8,14 +8,15 @@ Two independent, self-contained pages. Each is one HTML file (markup + inline `<
 one IIFE `<script>`) with no package manager, no build step and no dependencies. They share
 no code — only conventions. The poker ledger has a test suite; see below.
 
-- `index.html` — a poker buy-in / cash-out settlement tracker. This is the published site.
-- `tic-tac-toe.html` — a "blueprint"-themed tic-tac-toe game, served at `/tic-tac-toe.html`.
+`index.html` is a poker buy-in / cash-out settlement tracker, and it is the whole site. The
+tic-tac-toe game that used to live here now has its own repo and Pages site
+(<https://github.com/calvinkim85/tic-tac-toe>); the architecture notes below are kept because
+the two pages still share conventions.
 
 ## Running
 
 ```sh
 open index.html           # macOS: opens in the default browser
-open tic-tac-toe.html
 ```
 
 Or serve the folder (VS Code Live Server) for reload-on-save. Editing means editing the
@@ -29,9 +30,15 @@ never introduce one — a generated artefact alongside the source is exactly how
 file and the live file drift apart.
 
 ```sh
-sh test/run.sh            # 135 assertions; the gate before any push
+git pull                  # ALWAYS first — see below
+sh test/run.sh            # 154 assertions; the gate before any push
 git commit -am "..." && git push
 ```
+
+**Pull before you touch anything.** This repo is edited from three places: this folder, the
+github.com web editor, and Claude Code sessions. A commit made on github.com leaves the local
+copy behind, and editing stale files turns a trivial change into a merge. Pulling first costs
+a second and removes the whole class of problem.
 
 Pages redeploys on push; measured push-to-live latency on this repo is ~45s.
 
@@ -40,12 +47,22 @@ Pages redeploys on push; measured push-to-live latency on this repo is ~45s.
 `test/run.sh` rebuilds the suites with `test/build.py`, which extracts the pure functions
 straight out of `index.html` — extraction rather than duplication is deliberate, so a suite
 cannot drift from the code under test. Cases live in `test/cases/`, each declaring
-`// needs: core` or `// needs: storage` on its first line; `test/build/` is generated and
-git-ignored. The runner exits non-zero if any assertion fails.
+`// needs: core`, `// needs: storage`, or `// needs: site` on its first line; `test/build/` is
+generated and git-ignored. The runner exits non-zero if any assertion fails.
 
-Google Fonts load from the CDN via a `<link>` — Bricolage Grotesque + IBM Plex Sans/Mono
-for tic-tac-toe, Bodoni Moda + IBM Plex Sans/Mono for the poker ledger. Display typography
-needs a network connection; both pages themselves run fully offline.
+The `site` prelude hands a case the raw text of `index.html` and the crawler files, which is
+how `site-metadata.js` asserts that the canonical URL, `og:url`, `og:image`, `sitemap.xml` and
+`robots.txt` all name the same site. Changing the domain means changing all of them; that
+suite is what stops the migration half-landing and going unnoticed until Search Console
+reports duplicate content weeks later.
+
+Google Fonts load from the CDN via a `<link>` — Bodoni Moda + IBM Plex Sans/Mono. Display
+typography needs a network connection; the page itself runs fully offline.
+
+**The guide.** The `<details class="guide">` block under the tool is not decoration. A page
+that is pure interface has nothing for Google to rank and reads as "low value content" to an
+AdSense reviewer — the ~1,000 words fix both at once. Keep it genuinely useful and keep the
+heading structure; thin text written for crawlers is what gets a site rejected.
 
 ## Architecture — tic-tac-toe.html
 

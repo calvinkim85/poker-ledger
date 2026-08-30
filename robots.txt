@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://calvinkim85.github.io/poker-ledger/sitemap.xml

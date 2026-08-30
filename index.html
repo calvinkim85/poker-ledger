@@ -12,6 +12,20 @@
 <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'%3E%3Crect width='180' height='180' rx='40' fill='%2314523c'/%3E%3Cpath d='M90 34c-14 20-42 34-42 58a26 26 0 0 0 42 20 26 26 0 0 0 42-20c0-24-28-38-42-58z' fill='%23fcfaf5'/%3E%3Cpath d='M84 112c2 14-4 22-10 28h32c-6-6-12-14-10-28z' fill='%23fcfaf5'/%3E%3C/svg%3E">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'%3E%3Crect width='180' height='180' rx='40' fill='%2314523c'/%3E%3Cpath d='M90 34c-14 20-42 34-42 58a26 26 0 0 0 42 20 26 26 0 0 0 42-20c0-24-28-38-42-58z' fill='%23fcfaf5'/%3E%3Cpath d='M84 112c2 14-4 22-10 28h32c-6-6-12-14-10-28z' fill='%23fcfaf5'/%3E%3C/svg%3E">
 <link rel="manifest" href="manifest.webmanifest">
+<link rel="canonical" href="https://calvinkim85.github.io/poker-ledger/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Poker Ledger">
+<meta property="og:title" content="Poker Ledger">
+<meta property="og:description" content="Track poker buy-ins and cash-outs for 2-9 players, then work out who pays whom.">
+<meta property="og:url" content="https://calvinkim85.github.io/poker-ledger/">
+<meta property="og:image" content="https://calvinkim85.github.io/poker-ledger/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Poker Ledger — buy-ins, cash-outs, and who pays whom.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Poker Ledger">
+<meta name="twitter:description" content="Track poker buy-ins and cash-outs for 2-9 players, then work out who pays whom.">
+<meta name="twitter:image" content="https://calvinkim85.github.io/poker-ledger/og.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:opsz,wght@6..96,500;6..96,700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap">
@@ -440,6 +454,73 @@
   .v.down{ color:var(--loss); }
   .v.flat{ color:var(--flat); }
 
+
+  /* ---- guide ---- */
+  .guide{
+    margin-top:clamp(16px,2.6vw,24px);
+    background:var(--card);
+    border:1px solid var(--card-edge);
+    border-radius:14px;
+    box-shadow:0 20px 44px -26px var(--shadow);
+    overflow:hidden;
+  }
+  .guide summary{
+    cursor:pointer;
+    padding:clamp(15px,2.4vw,20px) clamp(16px,3vw,26px);
+    font-family:var(--mono);
+    font-size:.66rem;
+    letter-spacing:.16em;
+    text-transform:uppercase;
+    color:var(--ink-soft);
+    list-style:none;
+    display:flex;
+    align-items:center;
+    gap:10px;
+  }
+  .guide summary::-webkit-details-marker{ display:none; }
+  .guide summary::after{
+    content:"+";
+    margin-left:auto;
+    font-size:1.1rem;
+    line-height:1;
+    color:var(--ink-soft);
+  }
+  .guide[open] summary::after{ content:"\2212"; }
+  .guide summary:hover{ color:var(--ink); }
+  .guide summary:focus-visible{ outline:2px solid var(--gold); outline-offset:-3px; }
+  .guide-body{
+    padding:0 clamp(16px,3vw,26px) clamp(20px,3vw,30px);
+    max-width:68ch;
+    font-size:.94rem;
+    line-height:1.72;
+    color:var(--ink);
+  }
+  .guide-body .lede{
+    font-size:1.02rem;
+    color:var(--ink);
+    border-left:2.5px solid var(--gold);
+    padding-left:15px;
+    margin-top:0;
+  }
+  .guide-body h2{
+    font-family:var(--display);
+    font-weight:700;
+    font-size:1.32rem;
+    line-height:1.25;
+    margin:30px 0 10px;
+    text-wrap:balance;
+  }
+  .guide-body h3{
+    font-family:var(--body);
+    font-weight:700;
+    font-size:1rem;
+    margin:22px 0 8px;
+  }
+  .guide-body p{ margin:0 0 13px; }
+  .guide-body ul{ margin:0 0 15px; padding-left:20px; }
+  .guide-body li{ margin-bottom:7px; }
+  .guide-body strong{ font-weight:700; }
+
   /* ---- actions ---- */
   .actions{
     margin-top:clamp(14px,2.4vw,20px);
@@ -643,6 +724,128 @@
   </div>
 
   <section class="result" id="result" hidden aria-live="polite"></section>
+
+
+  <details class="guide" id="guide">
+    <summary><span>How to settle a home poker game</span></summary>
+    <div class="guide-body">
+
+      <p class="lede">Most home games end the same way: everyone counts their chips, someone
+        does arithmetic on a phone, the numbers don't quite add up, and the last twenty
+        minutes of the night are spent arguing about five dollars. Here is how the settling
+        actually works, why the count so often misses, and what to do when it does.</p>
+
+      <h2>Nobody pays the pot &mdash; players pay each other</h2>
+
+      <p>A home game has no house. The money that goes in is the money that comes out, so the
+        only thing that matters at the end is each player's <strong>net</strong>: what they
+        cashed out minus everything they bought in for. Someone who bought in twice for $20
+        and finished with $65 in chips is up $25. Someone who bought in once and busted is
+        down $20.</p>
+
+      <p>Add every net together and, if the count is right, they come to exactly zero. The
+        winners are owed precisely what the losers owe. Settling is then a matter of matching
+        one to the other with as few payments as possible &mdash; there is no reason for six
+        people to send six separate transfers when three will do. Pairing the biggest winner
+        with the biggest loser, then working down, always settles a table of <em>n</em>
+        players in at most <em>n</em>&nbsp;&minus;&nbsp;1 payments.</p>
+
+      <p>This is worth insisting on. The alternative &mdash; everyone pays into a pile and the
+        winners take from it &mdash; needs someone to hold cash all night and creates far more
+        transactions than it resolves.</p>
+
+      <h2>Why the chips almost never add up</h2>
+
+      <p>The count comes up wrong more often than not, and it is rarely anyone's fault:</p>
+
+      <ul>
+        <li>A rebuy gets handed over mid-hand and nobody writes it down.</li>
+        <li>Someone leaves early, cashes out, and their chips get folded back into the tray.</li>
+        <li>A stack gets miscounted &mdash; easy at 2am with mixed denominations.</li>
+        <li>A chip ends up on the floor, in a pocket, or under the sofa.</li>
+      </ul>
+
+      <p>The direction of the error tells you what happened, and the two cases are genuinely
+        different problems:</p>
+
+      <h3>More chips than money went in</h3>
+
+      <p>If the buy-ins total $300 but the chips count $320, the table is claiming $20 that
+        was never paid in. Almost always this means a buy-in went unrecorded &mdash; someone
+        rebought and it was missed. <strong>Check the buy-ins first.</strong> If you can find
+        the missing one, the books balance and no one has to lose anything.</p>
+
+      <p>If you genuinely cannot find it, that $20 does not exist and somebody has to absorb
+        it. The winners cannot all be paid in full.</p>
+
+      <h3>Fewer chips than money went in</h3>
+
+      <p>If $300 went in but only $285 is counted, $15 of chips has gone missing. Look under
+        the table before you do anything else. Failing that, the losers collectively owe more
+        than the winners are claiming, and the surplus has no owner.</p>
+
+      <h2>When the count won't reconcile</h2>
+
+      <p>Once you have looked and the gap is still there, someone has to eat it, and the
+        fairest answer is not obvious. Splitting it equally across everyone punishes the
+        players who lost money already. Making the person who miscounted pay assumes you know
+        who that was.</p>
+
+      <p>The approach this tool offers &mdash; the <strong>Cover the gap from the top</strong>
+        option &mdash; puts it on the players who finished ahead, starting with the biggest
+        winner. The reasoning is simple: they are the ones with winnings to give up, and a
+        small dent in a good night hurts less than deepening someone's loss.</p>
+
+      <p>The refinement that makes it fair is what happens when the top players finished close
+        together. If the biggest winner is far out in front, they cover the whole thing alone
+        and are still comfortably ahead. But if the top two are within a few dollars of each
+        other, making one of them pay it all would leapfrog the other &mdash; so they split
+        it, half each. Three players bunched at the top split it in thirds, four in quarters.
+        Nobody ever changes position; the amounts move, the standings don't.</p>
+
+      <p>It is off by default, and leaving it off is a perfectly good choice. Some tables would
+        rather see the raw discrepancy and decide in the moment &mdash; often the right call,
+        because a large gap usually means a genuine bookkeeping mistake worth finding rather
+        than a rounding error worth absorbing.</p>
+
+      <h2>House rules worth agreeing before you deal</h2>
+
+      <p>Nearly every end-of-night argument traces back to something nobody agreed at the
+        start. Five minutes beforehand saves an hour afterwards:</p>
+
+      <ul>
+        <li><strong>Buy-in and rebuy amounts.</strong> Fixed, or can people top up to any
+          number? Fixed is easier to track and easier to settle.</li>
+        <li><strong>Who records rebuys.</strong> One person, writing it down every time. This
+          single rule prevents most discrepancies.</li>
+        <li><strong>Leaving early.</strong> Count that player's chips at the moment they
+          leave, in front of someone else, and record it.</li>
+        <li><strong>How people pay up.</strong> Cash on the night, or transfers before
+          everyone goes to bed. Debts that survive the night have a way of surviving the
+          month.</li>
+        <li><strong>Rounding.</strong> If you play with change, decide whether you settle to
+          the cent or to the nearest dollar.</li>
+      </ul>
+
+      <h2>Keeping a tally across a season</h2>
+
+      <p>A single night says almost nothing about how anyone plays &mdash; variance swamps
+        skill over a few hours. What is interesting is the running total across a season, and
+        that only exists if someone records each night's nets somewhere. Copy the settlement
+        out at the end of each game and keep them together; after a dozen sessions you will
+        have something worth looking at, and it settles the question of who is actually
+        winning far better than anyone's memory of last month.</p>
+
+      <h2>About this tool</h2>
+
+      <p>Everything here runs in your browser. There is no account, no server, and nothing is
+        uploaded &mdash; the numbers you type never leave your device, which also means a game
+        entered on your phone won't appear on your laptop. It handles 2&ndash;9 players, seven
+        currencies including yen and won (which have no decimal places), and as many rebuys
+        per player as the night calls for. It is free, and it always will be.</p>
+
+    </div>
+  </details>
 
   <!-- Reserved for an ad unit. Stays hidden and occupies no space until a unit is
        placed here; see ADSENSE.md. Nothing is loaded from Google today. -->

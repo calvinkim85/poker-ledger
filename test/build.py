@@ -10,6 +10,7 @@ Each file in test/cases/ starts with a `// needs: <prelude>` line naming what it
 
   core     the money layer, the settlement algorithm, and the gap-splitting rule
   storage  the above plus load(), systemTheme(), and stubs for localStorage/matchMedia
+  site     the raw text of index.html and the crawler files, for asserting on markup
 """
 import os, re, sys
 
@@ -79,7 +80,27 @@ def build():
         STUBS,
         func(js, "  function load(){"),
     ])
-    preludes = {"core": HARNESS + core, "storage": HARNESS + storage}
+    def js_string(text):
+        return "\"" + text.replace("\\", "\\\\").replace('"', '\\"') \
+                          .replace("\n", "\\n").replace("\r", "") + "\""
+
+    def read(name):
+        path = os.path.join(ROOT, name)
+        return open(path, encoding="utf-8").read() if os.path.exists(path) else ""
+
+    html = open(SRC, encoding="utf-8").read()
+    guide = re.search(r"<details class=\"guide\".*?</details>", html, re.S)
+    guide_words = len(re.sub(r"<[^>]+>", " ", guide.group(0)).split()) if guide else 0
+    site = HARNESS + "\n".join([
+        "var html = %s;" % js_string(html),
+        "var head = %s;" % js_string(html[:html.find("</head>")]),
+        "var sitemap = %s;" % js_string(read("sitemap.xml")),
+        "var robots = %s;" % js_string(read("robots.txt")),
+        "var ads = %s;" % js_string(read("ads.txt")),
+        "var guideWords = %d;" % guide_words,
+    ])
+
+    preludes = {"core": HARNESS + core, "storage": HARNESS + storage, "site": site}
 
     os.makedirs(BUILD, exist_ok=True)
     built = []
