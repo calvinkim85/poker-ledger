@@ -1,0 +1,3 @@
+#!/bin/sh
+# Keep the project zip in step with every commit.
+sh "$(git rev-parse --show-toplevel)/tools/make-zip.sh"

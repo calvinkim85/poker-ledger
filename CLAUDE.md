@@ -35,6 +35,17 @@ sh test/run.sh            # 154 assertions; the gate before any push
 git commit -am "..." && git push
 ```
 
+**Project layout.** `Claude Code Test/` is where this user's projects live — put new work
+there by default, never elsewhere, unless they name a different location. It is currently
+also the poker-ledger repo root, so a sibling project sits in a subfolder with its own git
+repo (`tic-tac-toe/`) and is git-ignored here.
+
+**The zip.** `tools/make-zip.sh` rebuilds `poker-ledger-project.zip` from `HEAD` via
+`git archive`, wired to `post-commit` and `post-merge` hooks in `.githooks/`
+(`core.hooksPath` is set locally). Building from `HEAD` rather than the working tree is the
+whole point — the zip must never be able to disagree with what is on GitHub. It is
+git-ignored; committing it would add a binary copy of the repo to the repo on every commit.
+
 **Pull before you touch anything.** This repo is edited from three places: this folder, the
 github.com web editor, and Claude Code sessions. A commit made on github.com leaves the local
 copy behind, and editing stale files turns a trivial change into a merge. Pulling first costs

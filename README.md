@@ -26,6 +26,7 @@ Everything runs in the browser. No accounts, no server, nothing uploaded.
 | `index.html` | The entire app — markup, styles, and script in one file. |
 | `manifest.webmanifest`, `icon.svg` | Home-screen install metadata. |
 | `robots.txt`, `sitemap.xml`, `og.png` | Search and social-preview metadata. |
+| `tools/make-zip.sh`, `.githooks/` | Keep `poker-ledger-project.zip` in step with the repo. |
 | `ads.txt` | Placeholder; see `ADSENSE.md`. |
 | `CLAUDE.md` | Architecture notes and the rules to follow when editing. |
 
@@ -87,6 +88,34 @@ always balance and nobody ever changes placing), currency switching, the `localS
 migrations, and the site metadata — the canonical URL, Open Graph tags, sitemap and
 `robots.txt` are asserted to name the same site, so a domain change cannot half-land. They
 are the gate before any push.
+
+## The project zip
+
+`poker-ledger-project.zip` in this folder is a snapshot of the whole project, refreshed
+**automatically after every commit and every pull** by git hooks in `.githooks/`.
+
+It is built from `HEAD` with `git archive`, not from the working tree, which means it always
+contains exactly what is on GitHub. That is the point: a zip that could quietly differ from
+the deployed site would be worse than no zip at all.
+
+```sh
+sh tools/make-zip.sh      # rebuild by hand any time
+```
+
+Two things worth knowing:
+
+- **Uncommitted edits are not in it.** The zip tracks the last commit, so it updates when you
+  commit, not when you save. This is deliberate — it is what keeps the zip and GitHub
+  identical.
+- **Editing on github.com updates it on your next `git pull`**, via the `post-merge` hook.
+  Until you pull, the local zip describes the older version.
+
+The hooks are enabled per clone with `git config core.hooksPath .githooks`, already set here.
+The zip is git-ignored — committing a zip of the repo into the repo would add a fresh binary
+copy of everything to the history on every commit.
+
+GitHub also offers a **Download ZIP** button on the repo page, which is always current and
+needs no maintenance at all; the local zip exists so there is a copy on your own disk.
 
 ## Putting it on your own domain
 
