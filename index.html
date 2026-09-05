@@ -706,7 +706,7 @@
       <label class="lbl" for="defaultBuyIn">Standard buy-in</label>
       <div class="money w-default">
         <span class="cur" id="defaultCur">$</span>
-        <input type="text" id="defaultBuyIn" inputmode="decimal" value="20.00">
+        <input type="text" id="defaultBuyIn" inputmode="decimal" value="50.00">
       </div>
     </div>
     <div class="field grow">
@@ -931,14 +931,19 @@
   /* Symbols are ours, not Intl's: in their own locales SGD formats as a bare "$"
      (identical to USD) and CNY as "\u00a5" (identical to JPY). "dec" is the number of
      minor units — yen and won have none. */
+  /* `def` is the standard buy-in a fresh table starts on, in that currency's smallest
+     unit. These are not conversions of one another and are deliberately not tied to an
+     exchange rate — a rate would drift and would produce amounts like 47,300, which
+     nobody buys in for. Each is simply the round number people actually hand over,
+     which in most of these currencies is one common banknote. */
   var CURRENCIES = {
-    USD:{ sym:"$",       name:"US dollar",        dec:2, loc:"en-US" },
-    EUR:{ sym:"\u20ac",      name:"Euro",             dec:2, loc:"en-IE" },
-    GBP:{ sym:"\u00a3",      name:"British pound",    dec:2, loc:"en-GB" },
-    SGD:{ sym:"S$",      name:"Singapore dollar", dec:2, loc:"en-SG" },
-    CNY:{ sym:"CN\u00a5",    name:"Chinese yuan",     dec:2, loc:"zh-CN" },
-    JPY:{ sym:"\u00a5",      name:"Japanese yen",     dec:0, loc:"ja-JP" },
-    KRW:{ sym:"\u20a9",      name:"Korean won",       dec:0, loc:"ko-KR" }
+    USD:{ sym:"$",       name:"US dollar",        dec:2, loc:"en-US", def:5000   },  /* $50 */
+    EUR:{ sym:"\u20ac",      name:"Euro",             dec:2, loc:"en-IE", def:5000   },  /* EUR 50 */
+    GBP:{ sym:"\u00a3",      name:"British pound",    dec:2, loc:"en-GB", def:5000   },  /* GBP 50 */
+    SGD:{ sym:"S$",      name:"Singapore dollar", dec:2, loc:"en-SG", def:5000   },  /* S$50 */
+    CNY:{ sym:"CN\u00a5",    name:"Chinese yuan",     dec:2, loc:"zh-CN", def:30000  },  /* CN\u00a5300, three notes */
+    JPY:{ sym:"\u00a5",      name:"Japanese yen",     dec:0, loc:"ja-JP", def:5000   },  /* \u00a55,000 note */
+    KRW:{ sym:"\u20a9",      name:"Korean won",       dec:0, loc:"ko-KR", def:50000  }   /* \u20a950,000 note */
   };
   var CURRENCY_ORDER = ["USD","EUR","GBP","SGD","CNY","JPY","KRW"];
 
@@ -946,7 +951,7 @@
      — cents for USD, whole won for KRW. "" means the field is blank. */
   var state = {
     players: [],
-    defaultBuyIn: 2000,
+    defaultBuyIn: CURRENCIES.USD.def,
     currency: "USD",
     absorb: false
   };
@@ -1087,15 +1092,35 @@
     var from = state.currency;
     var to = CURRENCIES[currencySel.value] ? currencySel.value : "USD";
     if(to === from) return;
-    var rounded = convertAll(from, to);
+
+    /* On an untouched table, re-default to a buy-in that makes sense in the new
+       currency. Rescaling by the minor unit alone would turn $50 into 50 won, which
+       is not a buy-in in any game. On a table with real amounts in it, keep the old
+       behaviour and only fix the decimal places. */
+    var fresh = isPristine();
+    var rounded = false;
+    if(fresh){
+      state.defaultBuyIn = CURRENCIES[to].def;
+      state.players.forEach(function(p){
+        p.buyIns = [state.defaultBuyIn];
+        p.cashOut = 0;
+      });
+    } else {
+      rounded = convertAll(from, to);
+    }
+
     state.currency = to;
     applyCurrency();
     hideResult();          /* a settlement priced in the old currency must not linger */
     save();
     render();
-    showNotice(rounded
-      ? "Amounts were rounded to whole " + cur().name.toLowerCase() + "."
-      : "");
+    /* Switching mid-game keeps the numbers you typed — it does not apply an exchange
+       rate, and never has. Silently reinterpreting 120 dollars as 120 won is the kind
+       of thing you notice at settlement, so say it out loud. */
+    showNotice(fresh
+      ? "Standard buy-in set to " + fmt(state.defaultBuyIn) + "."
+      : "Amounts were kept as typed, not converted to " + cur().name.toLowerCase() + "." +
+        (rounded ? " Some were rounded to whole units." : ""));
   });
 
   /* ---------- theme ---------- */
@@ -1112,6 +1137,17 @@
   /* ---------- player helpers ---------- */
   function makePlayer(i){
     return { name:"Player " + (i + 1), buyIns:[state.defaultBuyIn], cashOut:0 };
+  }
+  /* True while nothing has actually been entered: every seat still holds exactly one
+     buy-in at the standard amount and nobody has cashed out. Switching currency is
+     free to re-default the table in that state, and must not touch it otherwise —
+     a game in progress is real data and its numbers are not ours to reinvent. */
+  function isPristine(){
+    return state.players.every(function(p){
+      return p.buyIns.length === 1 &&
+             p.buyIns[0] === state.defaultBuyIn &&
+             (p.cashOut === 0 || p.cashOut === "");
+    });
   }
   function totalIn(p){
     return p.buyIns.reduce(function(a, c){ return a + c; }, 0);
