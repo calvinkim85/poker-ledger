@@ -101,6 +101,7 @@ def build():
         "var sitemap = %s;" % js_string(read("sitemap.xml")),
         "var robots = %s;" % js_string(read("robots.txt")),
         "var ads = %s;" % js_string(read("ads.txt")),
+        "var manifest = %s;" % js_string(read("manifest.webmanifest")),
         "var css = %s;" % js_string(read("site.css")),
         "var consentJs = %s;" % js_string(read("consent.js")),
         "var guideWords = %d;" % guide_words,

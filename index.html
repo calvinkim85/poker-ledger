@@ -11,8 +11,8 @@
 <meta http-equiv="Content-Security-Policy" content="object-src 'none'; base-uri 'none'; form-action 'none'; upgrade-insecure-requests">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Poker Ledger</title>
-<meta name="description" content="Track poker buy-ins and cash-outs for 2-9 players, then work out who pays whom.">
+<title>Home Poker Ledger — poker buy-in and payout calculator</title>
+<meta name="description" content="Free home poker calculator. Enter each player's buy-ins and cash-out, and it works out who pays whom in the fewest transfers. 7 currencies, no signup.">
 <meta name="theme-color" content="#14523c">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -22,17 +22,17 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="canonical" href="https://calvinkim85.github.io/poker-ledger/">
 <meta property="og:type" content="website">
-<meta property="og:site_name" content="Poker Ledger">
-<meta property="og:title" content="Poker Ledger">
-<meta property="og:description" content="Track poker buy-ins and cash-outs for 2-9 players, then work out who pays whom.">
+<meta property="og:site_name" content="Home Poker Ledger">
+<meta property="og:title" content="Home Poker Ledger — poker buy-in and payout calculator">
+<meta property="og:description" content="Free home poker calculator. Enter buy-ins and cash-outs for 2-9 players and get who pays whom in the fewest transfers.">
 <meta property="og:url" content="https://calvinkim85.github.io/poker-ledger/">
 <meta property="og:image" content="https://calvinkim85.github.io/poker-ledger/og.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
-<meta property="og:image:alt" content="Poker Ledger — buy-ins, cash-outs, and who pays whom.">
+<meta property="og:image:alt" content="Home Poker Ledger — buy-ins, cash-outs, and who pays whom.">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="Poker Ledger">
-<meta name="twitter:description" content="Track poker buy-ins and cash-outs for 2-9 players, then work out who pays whom.">
+<meta name="twitter:title" content="Home Poker Ledger — poker buy-in and payout calculator">
+<meta name="twitter:description" content="Free home poker calculator. Enter buy-ins and cash-outs for 2-9 players and get who pays whom in the fewest transfers.">
 <meta name="twitter:image" content="https://calvinkim85.github.io/poker-ledger/og.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -657,6 +657,30 @@
     *{ transition-duration:.01ms !important; animation-duration:.01ms !important; }
   }
 </style>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "Home Poker Ledger",
+  "url": "https://calvinkim85.github.io/poker-ledger/",
+  "applicationCategory": "FinanceApplication",
+  "applicationSubCategory": "Settlement calculator",
+  "operatingSystem": "Any browser",
+  "browserRequirements": "Requires JavaScript",
+  "description": "Free home poker calculator. Enter each player's buy-ins and cash-out and it works out who pays whom in the fewest transfers, for 2-9 players in seven currencies.",
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+  "isAccessibleForFree": true,
+  "inLanguage": "en",
+  "featureList": [
+    "Settles a home poker game in the fewest possible transfers",
+    "Tracks every rebuy as a separate entry",
+    "Detects a chip count that does not match the buy-ins",
+    "Optionally covers the shortfall from the players who finished ahead",
+    "Seven currencies including KRW and JPY, which have no minor unit",
+    "Runs entirely in the browser with no account and no server"
+  ]
+}
+</script>
 </head>
 <body>
 
@@ -665,7 +689,7 @@
   <header class="rail">
     <div class="brand">
       <div class="suits">&spades; &hearts; &diams; &clubs;</div>
-      <h1>Poker Ledger</h1>
+      <h1>Home Poker Ledger</h1>
       <div class="sub">Buy-ins &middot; Cash-outs &middot; Who pays whom</div>
     </div>
     <button class="btn ghost" id="themeBtn" type="button" aria-label="Change colour scheme">

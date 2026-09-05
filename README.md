@@ -1,4 +1,4 @@
-# Poker Ledger
+# Home Poker Ledger
 
 A single-page tool for settling a home poker game. Enter what each of 2–9 players bought in
 for and what they cashed out, press Calculate, and it works out who pays whom in as few

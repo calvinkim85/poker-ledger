@@ -1,7 +1,7 @@
 {
-  "name": "Poker Ledger",
+  "name": "Home Poker Ledger",
   "short_name": "Poker Ledger",
-  "description": "Track poker buy-ins and cash-outs for 2-9 players, then work out who pays whom.",
+  "description": "Enter buy-ins and cash-outs for 2-9 players and get who pays whom in the fewest transfers.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",

@@ -63,3 +63,34 @@ if (!pub) {
      adsLines[0].indexOf("pub-" + pub[1]) !== -1, true);
   eq("ads.txt declares a DIRECT relationship", /DIRECT/.test(adsLines[0]), true);
 }
+
+log("-- the title and description are doing search work, not just naming the app --");
+var title = (head.match(/<title>([^<]+)<\/title>/) || [])[1] || "";
+var desc  = (head.match(/<meta name="description" content="([^"]+)"/) || [])[1] || "";
+eq("the title carries the product name", /Home Poker Ledger/.test(title), true);
+eq("the title fits a search result without truncating (<= 60 chars)", title.length <= 60, true);
+eq("the title says what the thing does, not only what it is called",
+   /calculator|payout|buy-in|settle/i.test(title.replace("Home Poker Ledger", "")), true);
+eq("the description is long enough to be used and short enough to survive",
+   desc.length >= 110 && desc.length <= 165, true);
+eq("the description names the core action", /who pays whom/i.test(desc), true);
+eq("the description says it is free", /free/i.test(desc), true);
+
+log("-- structured data --");
+var ld = html.match(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/);
+eq("index.html carries JSON-LD", !!ld, true);
+var parsed = null;
+try { parsed = JSON.parse(ld[1]); } catch (e) { parsed = null; }
+eq("the JSON-LD parses", !!parsed, true);
+eq("it declares a WebApplication", parsed && parsed["@type"], "WebApplication");
+eq("it declares the app free", parsed && parsed.offers && parsed.offers.price, "0");
+eq("the structured-data name matches the page", parsed && parsed.name, "Home Poker Ledger");
+eq("the structured-data URL matches the canonical", parsed && parsed.url, SITE);
+
+log("-- the home-screen label will not truncate --");
+var mani = null;
+try { mani = JSON.parse(manifest); } catch (e) {}
+eq("manifest parses", !!mani, true);
+eq("short_name is short enough for an icon label",
+   mani && mani.short_name.length <= 12, true);
+eq("the full name is the product name", mani && mani.name, "Home Poker Ledger");
