@@ -76,13 +76,15 @@ log("-- placeholders are all-or-nothing --");
    the site actually launches. What must always hold is that they are never HALF
    filled — a privacy policy naming a contact but not an officer, or vice versa, is
    worse than one that is obviously still a draft. */
-var TOKENS = ["[[OPERATOR_NAME]]", "[[CONTACT_EMAIL]]", "[[SITE_URL]]"];
+var TOKENS = ["[[OPERATOR_NAME]]", "[[OPERATOR_NAME_KO]]", "[[CONTACT_EMAIL]]", "[[SITE_URL]]"];
 var LEGAL = ["privacy.html", "privacy-ko.html", "terms.html"];
 var present = [], absent = [];
 LEGAL.forEach(function(n){
   TOKENS.forEach(function(t){
     /* terms.html does not carry [[SITE_URL]]; only count tokens a page uses at all. */
-    if (n === "terms.html" && t === "[[SITE_URL]]") return;
+    if (n === "terms.html" && (t === "[[SITE_URL]]" || t === "[[OPERATOR_NAME_KO]]")) return;
+    if (n === "privacy.html" && t === "[[OPERATOR_NAME_KO]]") return;
+    if (n === "privacy-ko.html" && t === "[[OPERATOR_NAME]]") return;
     (pages[n].indexOf(t) !== -1 ? present : absent).push(n + " " + t);
   });
 });

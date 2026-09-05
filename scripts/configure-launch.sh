@@ -13,13 +13,14 @@
 # the canonical tags rather than assuming the original one.
 set -eu
 
-if [ $# -lt 2 ] || [ $# -gt 3 ]; then
-  echo "usage: sh scripts/configure-launch.sh \"Legal Name\" \"contact@email\" [domain.com]" >&2
+if [ $# -lt 2 ] || [ $# -gt 4 ]; then
+  echo "usage: sh scripts/configure-launch.sh \"Name or designation\" \"contact@email\" [domain.com] [Korean designation]" >&2
   echo "       omit the domain to launch free on github.io" >&2
+  echo "       omit the Korean designation to reuse the first argument" >&2
   exit 2
 fi
 
-NAME="$1"; EMAIL="$2"; DOMAIN="${3:-}"
+NAME="$1"; EMAIL="$2"; DOMAIN="${3:-}"; NAME_KO="${4:-$1}"
 cd "$(dirname "$0")/.."
 
 case "$EMAIL" in *@*.*) ;; *) echo "error: '$EMAIL' does not look like an email" >&2; exit 2 ;; esac
@@ -47,9 +48,9 @@ else
 fi
 echo
 
-python3 - "$NAME" "$EMAIL" "$NEW_BASE" "$OLD_BASE" "$DOMAIN" <<'PY'
+python3 - "$NAME" "$EMAIL" "$NEW_BASE" "$OLD_BASE" "$DOMAIN" "$NAME_KO" <<'PY'
 import sys, os, glob
-name, email, new_base, old_base, domain = sys.argv[1:6]
+name, email, new_base, old_base, domain, name_ko = sys.argv[1:7]
 apex = bool(domain)
 
 files = sorted(set(glob.glob("*.html") + glob.glob("guides/*.html") +
@@ -60,12 +61,14 @@ for f in files:
         continue
     src = open(f, encoding="utf-8").read()
     out = src.replace(old_base, new_base)
+    out = out.replace("[[OPERATOR_NAME_KO]]", name_ko)
     out = out.replace("[[OPERATOR_NAME]]", name)
     out = out.replace("[[CONTACT_EMAIL]]", email)
     out = out.replace("[[SITE_URL]]", new_base)
     # The placeholders were rendered as visible TODO chips; once filled they are
     # ordinary text, so drop the chip styling with them.
     out = out.replace('<span class="todo">%s</span>' % name, name)
+    out = out.replace('<span class="todo">%s</span>' % name_ko, name_ko)
     out = out.replace('<span class="todo">%s</span>' % email,
                       '<a href="mailto:%s">%s</a>' % (email, email))
     out = out.replace('<span class="todo">%s</span>' % new_base, new_base)
