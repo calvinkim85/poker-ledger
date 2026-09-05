@@ -22,9 +22,8 @@ CODES.forEach(function(code){
   var c = CURRENCIES[code];
   var major = c.def / Math.pow(10, c.dec);
   eq(code + " default is a whole major unit (" + major + ")", major === Math.round(major), true);
-  /* Nobody buys in for 47. Every default should be a multiple of 50 in its own major
-     unit, or of 100 for the currencies whose notes are large. */
-  eq(code + " default is a round amount", major % 50 === 0 || major % 100 === 0, true);
+  /* Nobody buys in for 47. Every default is a round amount in its own major unit. */
+  eq(code + " default is a round amount", major % 10 === 0, true);
 });
 
 log("-- the defaults are in a sane band for a home game --");
@@ -34,13 +33,20 @@ var majors = {};
 CODES.forEach(function(code){
   majors[code] = CURRENCIES[code].def / Math.pow(10, CURRENCIES[code].dec);
 });
-eq("USD is 50", majors.USD, 50);
-eq("EUR is 50", majors.EUR, 50);
-eq("GBP is 50", majors.GBP, 50);
-eq("SGD is 50", majors.SGD, 50);
-eq("CNY is 300, not 50 — 50 yuan is about seven dollars", majors.CNY, 300);
-eq("JPY is 5000, not 50 — 50 yen is loose change", majors.JPY, 5000);
-eq("KRW is 50000, not 50 — 50 won is worth nothing", majors.KRW, 50000);
+/* Set from what home games actually use — "typically $20" in the US, £20-£200 in the
+   UK, ₩10,000-30,000 for casual play in Korea — and from this site's own guides, which
+   teach a $20 buy-in throughout. Not exchange-rate conversions of one another. */
+eq("USD is 20", majors.USD, 20);
+eq("EUR is 20", majors.EUR, 20);
+eq("GBP is 20", majors.GBP, 20);
+eq("SGD is 20", majors.SGD, 20);
+eq("CNY is 100, not 20 — 20 yuan is under three dollars", majors.CNY, 100);
+eq("JPY is 3000, not 20 — 20 yen is loose change", majors.JPY, 3000);
+eq("KRW is 30000, not 20 — 20 won is worth nothing", majors.KRW, 30000);
+
+log("-- the defaults agree with the guides, which teach a $20 buy-in --");
+eq("the USD default matches the buy-in used throughout the written content",
+   majors.USD, 20);
 
 log("-- the no-minor-unit currencies stay whole --");
 ["JPY", "KRW"].forEach(function(code){

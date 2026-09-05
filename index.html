@@ -706,7 +706,7 @@
       <label class="lbl" for="defaultBuyIn">Standard buy-in</label>
       <div class="money w-default">
         <span class="cur" id="defaultCur">$</span>
-        <input type="text" id="defaultBuyIn" inputmode="decimal" value="50.00">
+        <input type="text" id="defaultBuyIn" inputmode="decimal" value="20.00">
       </div>
     </div>
     <div class="field grow">
@@ -932,18 +932,35 @@
      (identical to USD) and CNY as "\u00a5" (identical to JPY). "dec" is the number of
      minor units — yen and won have none. */
   /* `def` is the standard buy-in a fresh table starts on, in that currency's smallest
-     unit. These are not conversions of one another and are deliberately not tied to an
-     exchange rate — a rate would drift and would produce amounts like 47,300, which
-     nobody buys in for. Each is simply the round number people actually hand over,
-     which in most of these currencies is one common banknote. */
+     unit. Set from what home games actually use, not from an exchange rate — a rate
+     drifts and produces buy-ins like 47,300, which nobody hands over.
+
+     What the sources say (checked Sept 2026):
+       US    "typically $20"; $25 and $50 also very popular; $100 occasional
+             — pokerchipforum.com home cash game threads
+       UK    £20-£200 overall; 100-200 big blinds, so £25-50 at 25p/25p
+             — pokersupplies.uk home game guide
+       KR    홀덤펍 ₩10,000-30,000 casual, ₩50,000+ for events
+             — holdemmaster.com. Home-game data is scarce; Korea's rules on
+               private play make it a thin literature.
+       JP    home games are frequently played for no money at all, so the figure
+             here is nominal rather than typical.
+       EUR / SGD / CNY have no direct data and follow the same band.
+
+     Every source converges on 100 big blinds as the anchor, which at the common
+     casual stakes lands at 20-50 of the local unit.
+
+     $20 is also what this site's own guides teach throughout — including the chip
+     table in guides/chip-denominations.html, which adds to exactly $20. A default
+     that contradicted the documentation would be its own small bug. */
   var CURRENCIES = {
-    USD:{ sym:"$",       name:"US dollar",        dec:2, loc:"en-US", def:5000   },  /* $50 */
-    EUR:{ sym:"\u20ac",      name:"Euro",             dec:2, loc:"en-IE", def:5000   },  /* EUR 50 */
-    GBP:{ sym:"\u00a3",      name:"British pound",    dec:2, loc:"en-GB", def:5000   },  /* GBP 50 */
-    SGD:{ sym:"S$",      name:"Singapore dollar", dec:2, loc:"en-SG", def:5000   },  /* S$50 */
-    CNY:{ sym:"CN\u00a5",    name:"Chinese yuan",     dec:2, loc:"zh-CN", def:30000  },  /* CN\u00a5300, three notes */
-    JPY:{ sym:"\u00a5",      name:"Japanese yen",     dec:0, loc:"ja-JP", def:5000   },  /* \u00a55,000 note */
-    KRW:{ sym:"\u20a9",      name:"Korean won",       dec:0, loc:"ko-KR", def:50000  }   /* \u20a950,000 note */
+    USD:{ sym:"$",       name:"US dollar",        dec:2, loc:"en-US", def:2000   },  /* $20 */
+    EUR:{ sym:"\u20ac",      name:"Euro",             dec:2, loc:"en-IE", def:2000   },  /* EUR 20 */
+    GBP:{ sym:"\u00a3",      name:"British pound",    dec:2, loc:"en-GB", def:2000   },  /* GBP 20 */
+    SGD:{ sym:"S$",      name:"Singapore dollar", dec:2, loc:"en-SG", def:2000   },  /* S$20 */
+    CNY:{ sym:"CN\u00a5",    name:"Chinese yuan",     dec:2, loc:"zh-CN", def:10000  },  /* CN\u00a5100, one note */
+    JPY:{ sym:"\u00a5",      name:"Japanese yen",     dec:0, loc:"ja-JP", def:3000   },  /* \u00a53,000 */
+    KRW:{ sym:"\u20a9",      name:"Korean won",       dec:0, loc:"ko-KR", def:30000  }   /* \u20a930,000 */
   };
   var CURRENCY_ORDER = ["USD","EUR","GBP","SGD","CNY","JPY","KRW"];
 
