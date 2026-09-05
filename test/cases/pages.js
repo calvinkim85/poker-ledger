@@ -120,3 +120,23 @@ function words(p){ return p.replace(/<script[\s\S]*?<\/script>/g, " ")
 var total = NAMES.reduce(function(a, n){ return a + words(pages[n]); }, 0) + guideWords;
 log("   total indexable prose: ~" + total + " words");
 eq("the site as a whole is not a one-page thin site", total > 3000, true);
+
+log("-- no half-removed editorial scaffolding --");
+/* A draft banner was once stripped with a non-greedy regex that stopped at the first
+   </div> — the inner heading. The wrapper vanished, the paragraph stayed, and a stray
+   </div> was left behind. It shipped, because the check looked for the heading text
+   (gone) and not the body text (still there). Both are asserted now, and so is the
+   tag balance that would have caught the orphan. */
+var DRAFT = ["This document is a draft", "not yet in force", "Not yet in force",
+             "still placeholders", "reviewed by a lawyer", "이 문서는 초안입니다",
+             "아직 시행 전입니다", "자리표시자", "lorem ipsum", "TODO", "FIXME"];
+Object.keys(pages).concat(["__app__"]).forEach(function(n){
+  var p = n === "__app__" ? html : pages[n];
+  var label = n === "__app__" ? "index.html" : n;
+  var found = DRAFT.filter(function(d){ return p.indexOf(d) !== -1; });
+  eq(label + " carries no draft or placeholder language", found, []);
+  /* Cheap structural check that catches an orphaned closing tag. */
+  var open = (p.match(/<div\b/g) || []).length;
+  var close = (p.match(/<\/div>/g) || []).length;
+  eq(label + " has balanced <div> tags (" + open + "/" + close + ")", open, close);
+});
