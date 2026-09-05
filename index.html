@@ -1233,6 +1233,11 @@
     });
     countOut.textContent = state.players.length;
     addBtn.disabled = state.players.length >= MAX_PLAYERS;
+    /* A greyed-out control that doesn't say why reads as broken rather than as a
+       limit. Both of these are hard bounds, so say which one you have hit. */
+    addBtn.title = addBtn.disabled
+      ? "A table holds " + MAX_PLAYERS + " players. Remove one to add another."
+      : "";
     defaultInput.value = toInput(state.defaultBuyIn);
     absorbBox.checked = state.absorb;
     updateTally();
@@ -1270,6 +1275,9 @@
     var remove = el("button", "btn tiny ghost", "Remove");
     remove.type = "button";
     remove.disabled = state.players.length <= MIN_PLAYERS;
+    remove.title = remove.disabled
+      ? "A game needs at least " + MIN_PLAYERS + " players."
+      : "";
     remove.setAttribute("aria-label", "Remove " + (p.name || "player " + (idx + 1)));
     remove.addEventListener("click", function(){
       state.players.splice(idx, 1);

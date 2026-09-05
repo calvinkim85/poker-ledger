@@ -24,10 +24,17 @@ Everything runs in the browser. No accounts, no server, nothing uploaded.
 | File | What it is |
 |---|---|
 | `index.html` | The entire app — markup, styles, and script in one file. |
+| `consent.js` | The advertising consent gate. The publisher ID inside it is the on/off switch for all advertising. |
+| `site.css` | Shared styling for the document pages. `index.html` does **not** use it — it stays self-contained. |
+| `privacy.html`, `privacy-ko.html` | Privacy policy, English and Korean. The Korean one is structured to PIPA Art. 30. |
+| `terms.html`, `404.html` | Terms of use, and a 404 that keeps you in the site. |
+| `how-it-works.html`, `guides/` | The written content: the settlement arithmetic, and four guides. |
 | `manifest.webmanifest`, `icon.svg` | Home-screen install metadata. |
 | `robots.txt`, `sitemap.xml`, `og.png` | Search and social-preview metadata. |
+| `scripts/` | `configure-launch.sh`, `enable-adsense.sh`, `preflight.sh`. |
+| `docs/launch-runbook.md` | Breach procedure, rollback, and the launch order. Read before launching. |
 | `test/` | The suite; `sh test/run.sh` runs it. |
-| `ads.txt` | Placeholder; see *Putting ads on this* below. |
+| `ads.txt` | Comments only until AdSense approves the site. |
 
 ## Running it locally
 
@@ -81,12 +88,51 @@ JavaScriptCore:
 osascript -l JavaScript test/<suite>.js
 ```
 
-154 assertions cover the money parsing and formatting, the settlement algorithm, the
+393 assertions cover the money parsing and formatting, the settlement algorithm, the
 gap-splitting rule (including a 400-table randomised property test asserting that the books
 always balance and nobody ever changes placing), currency switching, the `localStorage`
 migrations, and the site metadata — the canonical URL, Open Graph tags, sitemap and
-`robots.txt` are asserted to name the same site, so a domain change cannot half-land. They
-are the gate before any push.
+`robots.txt` are asserted to name the same site, so a domain change cannot half-land.
+
+Four suites were added for launch:
+
+| Suite | What it holds down |
+|---|---|
+| `contrast.js` | Every colour pair in both palettes meets WCAG 2.1 AA, computed from the `:root` blocks. A colour edit cannot quietly break it. |
+| `tokens.js` | `site.css` and `index.html` carry the same palette. The duplication is only tolerable because this fails on drift. |
+| `pages.js` | Every page has a title, description, canonical, CSP and referrer policy; the footers reach the legal pages; the Korean policy has every PIPA Art. 30 element; placeholders are all-or-nothing, never half-filled. |
+| `consent.js` | No page embeds an ad script; every `loadAds()` call is gated on consent; Consent Mode starts denied; `ads.txt` names the same publisher as `consent.js`. |
+
+These are written to stay green **through** a launch, not just before one — filling in the
+placeholders and switching ads on keeps the suite passing. That was rehearsed on a scratch
+copy rather than assumed.
+
+They are the gate before any push.
+
+## Launching it
+
+The site is not launchable as it stands: the privacy policy names nobody, and the
+policies say so in a banner. `scripts/preflight.sh` reports exactly what is outstanding
+and exits non-zero while anything is.
+
+```sh
+sh scripts/preflight.sh
+```
+
+The full order — buy the domain, configure, get indexed, apply to AdSense, then turn ads
+on — is in [`docs/launch-runbook.md`](docs/launch-runbook.md), along with the PIPA
+72-hour breach procedure and the rollback path. The short version:
+
+```sh
+sh scripts/configure-launch.sh "Your Legal Name" "privacy@yourdomain.com" "yourdomain.com"
+# read the policies, remove the "not yet in force" banners
+sh scripts/preflight.sh && sh test/run.sh
+# ...after AdSense approves:
+sh scripts/enable-adsense.sh ca-pub-XXXXXXXXXXXXXXXX
+```
+
+**The legal text has not been reviewed by a lawyer.** It is a careful description of what
+the site actually does, which is the hard part, but that is not the same thing as advice.
 
 ## Putting it on your own domain
 
@@ -151,18 +197,26 @@ None of this is a reason not to do it — it's a reason to do it with clear expe
 
 ### What's already in place
 
-- **`ads.txt`** is served from the site root. It contains only comments; the real publisher
-  line goes in after approval. A test asserts it stays comment-only.
-- **A reserved slot** — `<aside class="adslot" id="adslot" hidden>` sits below the
-  settlement in `index.html`. It is `hidden`, so it renders nothing and shifts no layout
-  until something is deliberately put in it.
-- **The guide** — roughly 1,000 words under the tool, addressing the "low value content"
-  problem directly. This was the single biggest obstacle and it is now done.
-- **`robots.txt`, `sitemap.xml`, canonical and Open Graph tags** — so the site is
-  crawlable and presents itself properly.
+- **A consent gate** — `consent.js` loads on every page. Nothing is fetched from Google
+  until the visitor clicks Allow; Consent Mode v2 starts denied. This is stricter than
+  the US requires and is what Korea requires, since advertising cookie data is personal
+  information there. A "Cookie settings" footer link makes the answer reversible.
+- **`ads.txt`** is served from the site root, comments only until approval. A test
+  asserts that once it carries a line, that line names the **same publisher** as
+  `consent.js` — a mismatch is how a site serves ads that earn nothing.
+- **A reserved slot** — `<aside class="adslot" id="adslot" hidden>` below the settlement.
+  It stays hidden until consent is granted, so it shifts no layout. Measured CLS is
+  0.0000 with the consent banner on screen.
+- **A privacy policy that names Google AdSense**, in English and Korean, with the
+  opt-out routes spelled out. Reviewers look for this, and PIPA requires it.
+- **~7,500 words across 11 pages** — `how-it-works.html` and four guides, on top of the
+  guide already under the tool. "Low value content" is the usual rejection for a
+  single-page tool and this is the direct answer to it.
+- **`robots.txt`, `sitemap.xml`, canonical and Open Graph tags** on every page.
 
-What remains before an application is realistic: **a domain**, and enough of a track record
-that the site looks alive. Enabling ads after that is an edit, not a rebuild.
+What remains: **a domain**, the three placeholders filled in, and enough indexing that the
+site looks alive. github.io subdomains face far steeper scrutiny than a real domain — that
+is why the domain is step one and not step ten. Enabling ads after that is one script.
 
 ### The steps, in order
 
