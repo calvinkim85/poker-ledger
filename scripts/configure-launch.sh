@@ -1,40 +1,56 @@
 #!/bin/sh
 # Fill in the three launch placeholders and point the site at its own domain.
 #
-#   sh scripts/configure-launch.sh "Your Legal Name" "privacy@yourdomain.com" "yourdomain.com"
+#   sh scripts/configure-launch.sh "Your Legal Name" "you@example.com" [domain.com]
 #
-# Touches: every .html page, sitemap.xml, robots.txt, CNAME.
-# Idempotent in the sense that re-running with different values re-points everything,
-# because it rewrites whatever host is currently in the canonical tags rather than
-# assuming the original one.
+# The domain is OPTIONAL. Without it the site stays on its current github.io URL and
+# only the operator name and contact are filled in — a complete, free launch. Buying a
+# domain later is the same script again with the third argument, and GitHub Pages
+# redirects the old URLs so indexing carries over rather than restarting.
+#
+# Touches: every .html page, sitemap.xml, robots.txt, and CNAME when a domain is given.
+# Re-running re-points everything, because it rewrites whatever host is currently in
+# the canonical tags rather than assuming the original one.
 set -eu
 
-if [ $# -ne 3 ]; then
-  echo "usage: sh scripts/configure-launch.sh \"Legal Name\" \"contact@domain\" \"domain.com\"" >&2
+if [ $# -lt 2 ] || [ $# -gt 3 ]; then
+  echo "usage: sh scripts/configure-launch.sh \"Legal Name\" \"contact@email\" [domain.com]" >&2
+  echo "       omit the domain to launch free on github.io" >&2
   exit 2
 fi
 
-NAME="$1"; EMAIL="$2"; DOMAIN="$3"
+NAME="$1"; EMAIL="$2"; DOMAIN="${3:-}"
 cd "$(dirname "$0")/.."
 
-case "$DOMAIN" in
-  http*|*/*) echo "error: give a bare hostname, e.g. pokerledger.app" >&2; exit 2 ;;
-  *.*) ;;
-  *) echo "error: '$DOMAIN' does not look like a domain" >&2; exit 2 ;;
-esac
 case "$EMAIL" in *@*.*) ;; *) echo "error: '$EMAIL' does not look like an email" >&2; exit 2 ;; esac
 
-OLD_BASE="https://calvinkim85.github.io/poker-ledger/"
-NEW_BASE="https://$DOMAIN/"
+CURRENT=$(grep -m1 -o 'rel="canonical" href="[^"]*"' index.html | sed 's/.*href="//;s/"$//')
+OLD_BASE="$CURRENT"
+
+if [ -n "$DOMAIN" ]; then
+  case "$DOMAIN" in
+    http*|*/*) echo "error: give a bare hostname, e.g. homepokerledger.com" >&2; exit 2 ;;
+    *.*) ;;
+    *) echo "error: '$DOMAIN' does not look like a domain" >&2; exit 2 ;;
+  esac
+  NEW_BASE="https://$DOMAIN/"
+else
+  NEW_BASE="$OLD_BASE"
+fi
 
 echo "  operator : $NAME"
 echo "  contact  : $EMAIL"
-echo "  site     : $NEW_BASE"
+if [ -n "$DOMAIN" ]; then
+  echo "  site     : $NEW_BASE  (moved from $OLD_BASE)"
+else
+  echo "  site     : $NEW_BASE  (unchanged — free launch, no domain)"
+fi
 echo
 
-python3 - "$NAME" "$EMAIL" "$NEW_BASE" "$OLD_BASE" <<'PY'
+python3 - "$NAME" "$EMAIL" "$NEW_BASE" "$OLD_BASE" "$DOMAIN" <<'PY'
 import sys, os, glob
-name, email, new_base, old_base = sys.argv[1:5]
+name, email, new_base, old_base, domain = sys.argv[1:6]
+apex = bool(domain)
 
 files = sorted(set(glob.glob("*.html") + glob.glob("guides/*.html") +
                    ["sitemap.xml", "robots.txt"]))
@@ -55,7 +71,9 @@ for f in files:
     out = out.replace('<span class="todo">%s</span>' % new_base, new_base)
     # 404.html carries /poker-ledger/ roots so it works on a project page; on an
     # apex domain the site is at the root.
-    if f == "404.html":
+    # 404.html carries /poker-ledger/ roots so it works on a project page. Only an
+    # apex domain serves the site from the root, so only rewrite them then.
+    if f == "404.html" and apex:
         out = out.replace('href="/poker-ledger/', 'href="/')
     if out != src:
         open(f, "w", encoding="utf-8").write(out)
@@ -64,8 +82,12 @@ for f in files:
 print("\n  %d files updated" % changed)
 PY
 
-printf '%s\n' "$DOMAIN" > CNAME
-echo "  written    CNAME -> $DOMAIN"
+if [ -n "$DOMAIN" ]; then
+  printf '%s\n' "$DOMAIN" > CNAME
+  echo "  written    CNAME -> $DOMAIN"
+else
+  [ -f CNAME ] && rm -f CNAME && echo "  removed    CNAME (staying on github.io)" || true
+fi
 
 echo
 echo "Next:"

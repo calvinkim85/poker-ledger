@@ -39,13 +39,17 @@ echo
 echo "Domain"
 if [ -f CNAME ]; then
   ok "CNAME present ($(cat CNAME))"
+  if grep -rql "calvinkim85.github.io" ./*.html guides/*.html sitemap.xml robots.txt 2>/dev/null; then
+    bad "a CNAME exists but pages still point at github.io — re-run configure-launch.sh"
+  else
+    ok "canonical URLs point at the custom domain"
+  fi
 else
-  bad "no CNAME — the site is still on github.io, which AdSense scrutinises far harder"
-fi
-if grep -rql "calvinkim85.github.io" ./*.html guides/*.html sitemap.xml robots.txt 2>/dev/null; then
-  bad "pages still point at github.io — run scripts/configure-launch.sh"
-else
-  ok "canonical URLs point at the custom domain"
+  # A free launch on github.io is a legitimate end state, not an unfinished one.
+  # It is only a problem if the goal is AdSense, which scrutinises free subdomains
+  # far harder. So: a note, not a blocker.
+  note "no custom domain — free launch on github.io. Fine to run this way indefinitely;"
+  note "  buy a domain and re-run configure-launch.sh before applying to AdSense."
 fi
 
 echo
