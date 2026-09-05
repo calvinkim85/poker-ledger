@@ -91,13 +91,21 @@ def build():
     html = open(SRC, encoding="utf-8").read()
     guide = re.search(r"<details class=\"guide\".*?</details>", html, re.S)
     guide_words = len(re.sub(r"<[^>]+>", " ", guide.group(0)).split()) if guide else 0
+    pages = ["privacy.html", "privacy-ko.html", "terms.html", "404.html",
+             "how-it-works.html", "guides/index.html",
+             "guides/chip-denominations.html", "guides/rebuys-and-late-entries.html",
+             "guides/being-the-banker.html", "guides/settlement-mistakes.html"]
     site = HARNESS + "\n".join([
         "var html = %s;" % js_string(html),
         "var head = %s;" % js_string(html[:html.find("</head>")]),
         "var sitemap = %s;" % js_string(read("sitemap.xml")),
         "var robots = %s;" % js_string(read("robots.txt")),
         "var ads = %s;" % js_string(read("ads.txt")),
+        "var css = %s;" % js_string(read("site.css")),
         "var guideWords = %d;" % guide_words,
+        "/* pages */",
+        "var pages = {%s};" % ", ".join(
+            "%s: %s" % (js_string(n), js_string(read(n))) for n in pages),
     ])
 
     preludes = {"core": HARNESS + core, "storage": HARNESS + storage, "site": site}

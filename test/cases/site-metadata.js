@@ -18,9 +18,11 @@ eq("og:image sits under the site",
    (head.match(/<meta property="og:image" content="([^"]+)"/) || [])[1], SITE + "og.png");
 eq("twitter:image matches og:image",
    (head.match(/<meta name="twitter:image" content="([^"]+)"/) || [])[1], SITE + "og.png");
-eq("sitemap lists exactly the canonical URL",
-   (sitemap.match(/<loc>([^<]+)<\/loc>/g) || []).length === 1 &&
-   sitemap.indexOf("<loc>" + SITE + "</loc>") !== -1, true);
+eq("sitemap lists the canonical URL", sitemap.indexOf("<loc>" + SITE + "</loc>") !== -1, true);
+eq("every sitemap URL sits under the canonical site",
+   (sitemap.match(/<loc>([^<]+)<\/loc>/g) || []).filter(function(l){
+     return l.indexOf("<loc>" + SITE) !== 0;
+   }), []);
 eq("robots.txt points at the sitemap",
    robots.indexOf("Sitemap: " + SITE + "sitemap.xml") !== -1, true);
 

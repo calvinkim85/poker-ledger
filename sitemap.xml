@@ -1,9 +1,68 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
     <loc>https://calvinkim85.github.io/poker-ledger/</loc>
-    <lastmod>2026-08-30</lastmod>
+    <lastmod>2026-09-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>1.0</priority>
+  </url>
+  <url>
+    <loc>https://calvinkim85.github.io/poker-ledger/how-it-works.html</loc>
+    <lastmod>2026-09-05</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://calvinkim85.github.io/poker-ledger/guides/</loc>
+    <lastmod>2026-09-05</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://calvinkim85.github.io/poker-ledger/guides/chip-denominations.html</loc>
+    <lastmod>2026-09-05</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://calvinkim85.github.io/poker-ledger/guides/rebuys-and-late-entries.html</loc>
+    <lastmod>2026-09-05</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://calvinkim85.github.io/poker-ledger/guides/being-the-banker.html</loc>
+    <lastmod>2026-09-05</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://calvinkim85.github.io/poker-ledger/guides/settlement-mistakes.html</loc>
+    <lastmod>2026-09-05</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://calvinkim85.github.io/poker-ledger/privacy.html</loc>
+    <lastmod>2026-09-05</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.4</priority>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://calvinkim85.github.io/poker-ledger/privacy-ko.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://calvinkim85.github.io/poker-ledger/privacy.html"/>
+  </url>
+  <url>
+    <loc>https://calvinkim85.github.io/poker-ledger/privacy-ko.html</loc>
+    <lastmod>2026-09-05</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.4</priority>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://calvinkim85.github.io/poker-ledger/privacy-ko.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://calvinkim85.github.io/poker-ledger/privacy.html"/>
+  </url>
+  <url>
+    <loc>https://calvinkim85.github.io/poker-ledger/terms.html</loc>
+    <lastmod>2026-09-05</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.4</priority>
   </url>
 </urlset>

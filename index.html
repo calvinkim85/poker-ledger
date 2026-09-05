@@ -628,11 +628,15 @@
     margin-top:clamp(18px,3vw,26px);
     font-family:var(--mono);
     font-size:.64rem;
-    line-height:1.85;
+    line-height:1.95;
     letter-spacing:.02em;
     color:var(--on-felt-dim);
     text-align:center;
   }
+  .foot a{ color:var(--on-felt); text-decoration:none; border-bottom:1px solid rgba(255,255,255,.28); }
+  .foot a:hover{ border-bottom-color:var(--on-felt); }
+  .foot a:focus-visible{ outline:2px solid var(--on-felt); outline-offset:3px; border-radius:2px; }
+  .foot .sep{ opacity:.5; margin:0 7px; }
 
   @media (max-width:560px){
     .seat{ grid-template-columns:1fr; }
@@ -852,7 +856,8 @@
   <aside class="adslot" id="adslot" hidden aria-hidden="true"></aside>
 
   <footer class="foot">
-    Everything stays in this browser &mdash; nothing is uploaded.
+    Everything stays in this browser &mdash; nothing is uploaded.<br>
+    <a href="how-it-works.html">How it works</a><span class="sep">&middot;</span><a href="guides/">Guides</a><span class="sep">&middot;</span><a href="privacy.html">Privacy</a><span class="sep">&middot;</span><a href="privacy-ko.html">개인정보처리방침</a><span class="sep">&middot;</span><a href="terms.html">Terms</a>
   </footer>
 
 </main>
