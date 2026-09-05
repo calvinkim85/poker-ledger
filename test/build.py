@@ -102,6 +102,7 @@ def build():
         "var robots = %s;" % js_string(read("robots.txt")),
         "var ads = %s;" % js_string(read("ads.txt")),
         "var css = %s;" % js_string(read("site.css")),
+        "var consentJs = %s;" % js_string(read("consent.js")),
         "var guideWords = %d;" % guide_words,
         "/* pages */",
         "var pages = {%s};" % ", ".join(
