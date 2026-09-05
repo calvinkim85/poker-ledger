@@ -19,8 +19,10 @@ NAMES.forEach(function(n){
   eq(n + " sets a referrer policy", /<meta name="referrer" content="strict-origin-when-cross-origin">/.test(p), true);
   eq(n + " sets the enforceable CSP directives",
      /<meta http-equiv="Content-Security-Policy" content="object-src 'none'; base-uri 'none'; form-action 'none'; upgrade-insecure-requests">/.test(p), true);
+  /* The rule is about the policy, not the file: the HTML comment above it explains
+     why script-src is absent and legitimately contains the string. */
   eq(n + " does not allowlist ad domains, which would break serving over time",
-     p.indexOf("script-src") === -1, true);
+     /content="[^"]*script-src/.test(p), false);
 });
 
 eq("the app carries the same headers as the document pages",
