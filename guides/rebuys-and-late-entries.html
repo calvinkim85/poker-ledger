@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<!-- Partial CSP. script-src is deliberately absent: Google supports only strict
+     CSP with per-request nonces for AdSense (a domain allowlist breaks ad serving
+     as their domains rotate), and GitHub Pages serves static files and cannot
+     generate a nonce per request. frame-ancestors and X-Content-Type-Options are
+     header-only and cannot be set from a meta tag at all. What is here is the
+     subset that is both enforceable and safe for ads. See docs/launch-runbook.md. -->
+<meta http-equiv="Content-Security-Policy" content="object-src 'none'; base-uri 'none'; form-action 'none'; upgrade-insecure-requests">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Rebuys, add-ons, and players who arrive late — Home Poker Ledger</title>
+<meta name="description" content="What to agree before the first hand, how to record a rebuy so it survives to settlement, seating a late player, and cashing out early without breaking the count.">
+<meta name="theme-color" content="#14523c">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<link rel="canonical" href="https://calvinkim85.github.io/poker-ledger/guides/rebuys-and-late-entries.html">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="Home Poker Ledger">
+<meta property="og:title" content="Rebuys, add-ons, and players who arrive late — Home Poker Ledger">
+<meta property="og:description" content="What to agree before the first hand, how to record a rebuy so it survives to settlement, seating a late player, and cashing out early without breaking the count.">
+<meta property="og:url" content="https://calvinkim85.github.io/poker-ledger/guides/rebuys-and-late-entries.html">
+<meta property="og:image" content="https://calvinkim85.github.io/poker-ledger/og.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'%3E%3Crect width='180' height='180' rx='40' fill='%2314523c'/%3E%3Cpath d='M90 34c-14 20-42 34-42 58a26 26 0 0 0 42 20 26 26 0 0 0 42-20c0-24-28-38-42-58z' fill='%23fcfaf5'/%3E%3Cpath d='M84 112c2 14-4 22-10 28h32c-6-6-12-14-10-28z' fill='%23fcfaf5'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:opsz,wght@6..96,500;6..96,700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="../site.css">
+<script>
+(function(){try{var s=JSON.parse(localStorage.getItem("poker.ledger.v1")||"null");
+if(s&&(s.theme==="dark"||s.theme==="light"))document.documentElement.setAttribute("data-theme",s.theme);}catch(e){}})();
+</script>
+</head>
+<body>
+
+<main class="table">
+
+  <header class="rail">
+    <div class="brand">
+      <div class="suits">&spades; &hearts; &diams; &clubs;</div>
+      <h1>Rebuys</h1>
+      <div class="sub">Add-ons, late entries, and early exits</div>
+    </div>
+    <a class="back" href="../">&larr; Back to the ledger</a>
+  </header>
+
+  <article class="doc">
+
+    <p class="updated">Guides &middot; During the game</p>
+
+    <p class="lede">Almost every unreconcilable count traces back to a rebuy that nobody
+      wrote down. The fix is not better memory &mdash; it is a rule agreed before the first
+      hand and a record made at the moment the chips change hands.</p>
+
+    <h2>Decide these four things before you deal</h2>
+    <ol>
+      <li><strong>Is rebuying allowed at all, and until when?</strong> &ldquo;Unlimited until
+        midnight&rdquo; is a normal answer. So is &ldquo;one rebuy each.&rdquo; What causes
+        arguments is not having answered.</li>
+      <li><strong>Must you be busted, or can you top up?</strong> Letting a short stack top
+        back to full is common and fine, but it needs to be stated, because it changes what
+        a stack size means.</li>
+      <li><strong>Is the rebuy the same size as the original buy-in?</strong> Usually yes.
+        Half-buy-ins are a source of settlement errors out of proportion to their
+        convenience.</li>
+      <li><strong>Who is holding the money?</strong> See <a href="being-the-banker.html">being
+        the banker</a>.</li>
+    </ol>
+
+    <h2>Record it before the chips are pushed</h2>
+    <p>The rebuy that goes missing is always the one handed over mid-hand, while the
+      banker is in the pot and nobody wants to stop the action. Two habits prevent
+      essentially all of it:</p>
+    <ul>
+      <li><strong>Chips do not move until the entry exists.</strong> Writing it down takes
+        four seconds and the hand can wait four seconds.</li>
+      <li><strong>Keep each buy-in as its own line, not a running total.</strong> If a
+        player's record says &ldquo;$60&rdquo; you cannot tell whether that was three
+        twenties or a twenty and a forty, and you cannot check it against anything. If it
+        says &ldquo;20, 20, 20&rdquo; you can reconstruct the night.</li>
+    </ul>
+    <p>Home Poker Ledger keeps buy-ins as separate entries for exactly this reason &mdash; the
+      <b>+ Rebuy</b> button adds a line rather than incrementing a number, and the line
+      survives to the settlement screen.</p>
+
+    <h2>Players who arrive late</h2>
+    <p>Someone turning up two hours in is a normal part of a home game and needs no special
+      treatment on the money side: they buy in for the standard amount and their net is
+      calculated the same way as everyone else's. Time played does not enter the
+      arithmetic.</p>
+    <p>What does need deciding is whether they come in for a <em>full</em> stack when the
+      table has grown deep. If everyone else is sitting behind three buy-ins, a fresh
+      single stack plays very differently. Common answers: let them buy in for the table
+      average, or let them buy in short and rebuy freely. Either works. Deciding it while
+      they stand behind a chair does not.</p>
+
+    <h2>Add-ons and the final round</h2>
+    <p>If you run a hard stop &mdash; last hand at 1am &mdash; be explicit about whether a
+      rebuy is allowed on the last orbit. A player who busts on the second-to-last hand and
+      rebuys for a full stack they will play twice has bought a lottery ticket at
+      everyone's expense.</p>
+    <p>The usual rule is that rebuys close one full orbit before the end. Say so out loud
+      when the orbit starts, not when someone asks.</p>
+
+    <h2>Cashing out early</h2>
+    <p>A player who leaves at 11pm is one of the two most common causes of a broken count
+      &mdash; the other being an unrecorded rebuy. The failure is specific: they count
+      their chips, take their money, and their chips go back into the tray <em>before</em>
+      anyone records the cash-out figure.</p>
+    <p>Record the number first, then the chips go back. And it is worth a moment's care
+      with the count, because their figure cannot be checked later &mdash; once those chips
+      are mixed back into the tray, the evidence is gone.</p>
+    <p>If your count does end up short at the end, <a href="settlement-mistakes.html">five
+      ways a settlement goes wrong</a> covers how to find where.</p>
+
+  </article>
+
+  <footer class="foot">
+    <a href="../">Ledger</a><span class="sep">&middot;</span><a href="../how-it-works.html">How it works</a><span class="sep">&middot;</span><a href="../guides/">Guides</a><br><a href="../privacy.html">Privacy</a><span class="sep">&middot;</span><a href="../privacy-ko.html">개인정보처리방침</a><span class="sep">&middot;</span><a href="../terms.html">Terms</a><span class="sep">&middot;</span><a href="#" data-consent-reopen hidden>Cookie settings</a>
+  </footer>
+
+</main>
+
+<script src="../consent.js" defer></script>
+
+</body>
+</html>

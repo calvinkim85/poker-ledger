@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<!-- Partial CSP. script-src is deliberately absent: Google supports only strict
+     CSP with per-request nonces for AdSense (a domain allowlist breaks ad serving
+     as their domains rotate), and GitHub Pages serves static files and cannot
+     generate a nonce per request. frame-ancestors and X-Content-Type-Options are
+     header-only and cannot be set from a meta tag at all. What is here is the
+     subset that is both enforceable and safe for ads. See docs/launch-runbook.md. -->
+<meta http-equiv="Content-Security-Policy" content="object-src 'none'; base-uri 'none'; form-action 'none'; upgrade-insecure-requests">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Guides — running the money side of a home poker game</title>
+<meta name="description" content="Practical guides to the money side of a home game: chip denominations, rebuys, being the banker, and the five ways a settlement goes wrong.">
+<meta name="theme-color" content="#14523c">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<link rel="canonical" href="https://calvinkim85.github.io/poker-ledger/guides/">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="Home Poker Ledger">
+<meta property="og:title" content="Guides — running the money side of a home poker game">
+<meta property="og:description" content="Practical guides to the money side of a home game: chip denominations, rebuys, being the banker, and the five ways a settlement goes wrong.">
+<meta property="og:url" content="https://calvinkim85.github.io/poker-ledger/guides/">
+<meta property="og:image" content="https://calvinkim85.github.io/poker-ledger/og.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'%3E%3Crect width='180' height='180' rx='40' fill='%2314523c'/%3E%3Cpath d='M90 34c-14 20-42 34-42 58a26 26 0 0 0 42 20 26 26 0 0 0 42-20c0-24-28-38-42-58z' fill='%23fcfaf5'/%3E%3Cpath d='M84 112c2 14-4 22-10 28h32c-6-6-12-14-10-28z' fill='%23fcfaf5'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:opsz,wght@6..96,500;6..96,700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="../site.css">
+<script>
+(function(){try{var s=JSON.parse(localStorage.getItem("poker.ledger.v1")||"null");
+if(s&&(s.theme==="dark"||s.theme==="light"))document.documentElement.setAttribute("data-theme",s.theme);}catch(e){}})();
+</script>
+</head>
+<body>
+
+<main class="table">
+
+  <header class="rail">
+    <div class="brand">
+      <div class="suits">&spades; &hearts; &diams; &clubs;</div>
+      <h1>Guides</h1>
+      <div class="sub">The money side of a home game</div>
+    </div>
+    <a class="back" href="../">&larr; Back to the ledger</a>
+  </header>
+
+  <article class="doc">
+
+    <p class="lede">Short, practical pieces on the money side of a home game &mdash; the
+      part that has nothing to do with how well you play, and causes most of the friction.</p>
+
+    <ul class="cards">
+      <li><a href="chip-denominations.html"><b>Choosing chip values and starting stacks</b>
+        <span>How to pick denominations that fit your buy-in, why the cheapest chip should
+        be worth about a fortieth of a stack, and the colours to avoid.</span></a></li>
+      <li><a href="rebuys-and-late-entries.html"><b>Rebuys, add-ons, and players who arrive late</b>
+        <span>What to agree before the first hand, how to record a rebuy so it survives
+        until settlement, and how to seat someone who missed the start.</span></a></li>
+      <li><a href="being-the-banker.html"><b>Being the banker</b>
+        <span>Running the cash without it becoming your whole evening: collecting buy-ins,
+        keeping the tray honest, and paying out at the end.</span></a></li>
+      <li><a href="settlement-mistakes.html"><b>Five ways a settlement goes wrong</b>
+        <span>The specific arithmetic errors that turn a five-minute settle into a
+        forty-minute argument, and how to catch each one.</span></a></li>
+    </ul>
+
+    <p>The calculator itself is <a href="../">here</a>, and
+      <a href="../how-it-works.html">How it works</a> explains the arithmetic it performs.</p>
+
+  </article>
+
+  <footer class="foot">
+    <a href="../">Ledger</a><span class="sep">&middot;</span><a href="../how-it-works.html">How it works</a><span class="sep">&middot;</span><a href="../guides/">Guides</a><br><a href="../privacy.html">Privacy</a><span class="sep">&middot;</span><a href="../privacy-ko.html">개인정보처리방침</a><span class="sep">&middot;</span><a href="../terms.html">Terms</a><span class="sep">&middot;</span><a href="#" data-consent-reopen hidden>Cookie settings</a>
+  </footer>
+
+</main>
+
+<script src="../consent.js" defer></script>
+
+</body>
+</html>

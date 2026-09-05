@@ -2,9 +2,17 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<!-- Partial CSP. script-src is deliberately absent: Google supports only strict
+     CSP with per-request nonces for AdSense (a domain allowlist breaks ad serving
+     as their domains rotate), and GitHub Pages serves static files and cannot
+     generate a nonce per request. frame-ancestors and X-Content-Type-Options are
+     header-only and cannot be set from a meta tag at all. What is here is the
+     subset that is both enforceable and safe for ads. See docs/launch-runbook.md. -->
+<meta http-equiv="Content-Security-Policy" content="object-src 'none'; base-uri 'none'; form-action 'none'; upgrade-insecure-requests">
+<meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Poker Ledger</title>
-<meta name="description" content="Track poker buy-ins and cash-outs for 2-9 players, then work out who pays whom.">
+<title>Home Poker Ledger — poker buy-in and payout calculator</title>
+<meta name="description" content="Free home poker calculator. Enter each player's buy-ins and cash-out, and it works out who pays whom in the fewest transfers. 7 currencies, no signup.">
 <meta name="theme-color" content="#14523c">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -14,17 +22,17 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="canonical" href="https://calvinkim85.github.io/poker-ledger/">
 <meta property="og:type" content="website">
-<meta property="og:site_name" content="Poker Ledger">
-<meta property="og:title" content="Poker Ledger">
-<meta property="og:description" content="Track poker buy-ins and cash-outs for 2-9 players, then work out who pays whom.">
+<meta property="og:site_name" content="Home Poker Ledger">
+<meta property="og:title" content="Home Poker Ledger — poker buy-in and payout calculator">
+<meta property="og:description" content="Free home poker calculator. Enter buy-ins and cash-outs for 2-9 players and get who pays whom in the fewest transfers.">
 <meta property="og:url" content="https://calvinkim85.github.io/poker-ledger/">
 <meta property="og:image" content="https://calvinkim85.github.io/poker-ledger/og.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
-<meta property="og:image:alt" content="Poker Ledger — buy-ins, cash-outs, and who pays whom.">
+<meta property="og:image:alt" content="Home Poker Ledger — buy-ins, cash-outs, and who pays whom.">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="Poker Ledger">
-<meta name="twitter:description" content="Track poker buy-ins and cash-outs for 2-9 players, then work out who pays whom.">
+<meta name="twitter:title" content="Home Poker Ledger — poker buy-in and payout calculator">
+<meta name="twitter:description" content="Free home poker calculator. Enter buy-ins and cash-outs for 2-9 players and get who pays whom in the fewest transfers.">
 <meta name="twitter:image" content="https://calvinkim85.github.io/poker-ledger/og.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -43,12 +51,12 @@
     --card-edge:#ddd2bd;
     --card-sunk:#f2ebdd;
     --ink:#22201c;
-    --ink-soft:#7a7264;
-    --gold:#b48b3c;
+    --ink-soft:#716a5d;
+    --gold:#84662c;
     --win:#1c7a4f;
     --loss:#b23b34;
-    --flat:#7a7264;
-    --alert:#a5642a;
+    --flat:#716a5d;
+    --alert:#9f6028;
     --alert-bg:#fdf1df;
     --ok-bg:#e9f5ed;
     --chip:#f4ede0;
@@ -628,11 +636,15 @@
     margin-top:clamp(18px,3vw,26px);
     font-family:var(--mono);
     font-size:.64rem;
-    line-height:1.85;
+    line-height:1.95;
     letter-spacing:.02em;
     color:var(--on-felt-dim);
     text-align:center;
   }
+  .foot a{ color:var(--on-felt); text-decoration:none; border-bottom:1px solid rgba(255,255,255,.28); }
+  .foot a:hover{ border-bottom-color:var(--on-felt); }
+  .foot a:focus-visible{ outline:2px solid var(--on-felt); outline-offset:3px; border-radius:2px; }
+  .foot .sep{ opacity:.5; margin:0 7px; }
 
   @media (max-width:560px){
     .seat{ grid-template-columns:1fr; }
@@ -645,6 +657,30 @@
     *{ transition-duration:.01ms !important; animation-duration:.01ms !important; }
   }
 </style>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "Home Poker Ledger",
+  "url": "https://calvinkim85.github.io/poker-ledger/",
+  "applicationCategory": "FinanceApplication",
+  "applicationSubCategory": "Settlement calculator",
+  "operatingSystem": "Any browser",
+  "browserRequirements": "Requires JavaScript",
+  "description": "Free home poker calculator. Enter each player's buy-ins and cash-out and it works out who pays whom in the fewest transfers, for 2-9 players in seven currencies.",
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+  "isAccessibleForFree": true,
+  "inLanguage": "en",
+  "featureList": [
+    "Settles a home poker game in the fewest possible transfers",
+    "Tracks every rebuy as a separate entry",
+    "Detects a chip count that does not match the buy-ins",
+    "Optionally covers the shortfall from the players who finished ahead",
+    "Seven currencies including KRW and JPY, which have no minor unit",
+    "Runs entirely in the browser with no account and no server"
+  ]
+}
+</script>
 </head>
 <body>
 
@@ -653,7 +689,7 @@
   <header class="rail">
     <div class="brand">
       <div class="suits">&spades; &hearts; &diams; &clubs;</div>
-      <h1>Poker Ledger</h1>
+      <h1>Home Poker Ledger</h1>
       <div class="sub">Buy-ins &middot; Cash-outs &middot; Who pays whom</div>
     </div>
     <button class="btn ghost" id="themeBtn" type="button" aria-label="Change colour scheme">
@@ -670,7 +706,7 @@
       <label class="lbl" for="defaultBuyIn">Standard buy-in</label>
       <div class="money w-default">
         <span class="cur" id="defaultCur">$</span>
-        <input type="text" id="defaultBuyIn" inputmode="decimal" value="20.00">
+        <input type="text" id="defaultBuyIn" inputmode="decimal" value="50.00">
       </div>
     </div>
     <div class="field grow">
@@ -852,7 +888,8 @@
   <aside class="adslot" id="adslot" hidden aria-hidden="true"></aside>
 
   <footer class="foot">
-    Everything stays in this browser &mdash; nothing is uploaded.
+    Everything stays in this browser &mdash; nothing is uploaded.<br>
+    <a href="how-it-works.html">How it works</a><span class="sep">&middot;</span><a href="guides/">Guides</a><span class="sep">&middot;</span><a href="privacy.html">Privacy</a><span class="sep">&middot;</span><a href="privacy-ko.html">개인정보처리방침</a><span class="sep">&middot;</span><a href="terms.html">Terms</a><span class="sep">&middot;</span><a href="#" data-consent-reopen hidden>Cookie settings</a>
   </footer>
 
 </main>
@@ -894,14 +931,19 @@
   /* Symbols are ours, not Intl's: in their own locales SGD formats as a bare "$"
      (identical to USD) and CNY as "\u00a5" (identical to JPY). "dec" is the number of
      minor units — yen and won have none. */
+  /* `def` is the standard buy-in a fresh table starts on, in that currency's smallest
+     unit. These are not conversions of one another and are deliberately not tied to an
+     exchange rate — a rate would drift and would produce amounts like 47,300, which
+     nobody buys in for. Each is simply the round number people actually hand over,
+     which in most of these currencies is one common banknote. */
   var CURRENCIES = {
-    USD:{ sym:"$",       name:"US dollar",        dec:2, loc:"en-US" },
-    EUR:{ sym:"\u20ac",      name:"Euro",             dec:2, loc:"en-IE" },
-    GBP:{ sym:"\u00a3",      name:"British pound",    dec:2, loc:"en-GB" },
-    SGD:{ sym:"S$",      name:"Singapore dollar", dec:2, loc:"en-SG" },
-    CNY:{ sym:"CN\u00a5",    name:"Chinese yuan",     dec:2, loc:"zh-CN" },
-    JPY:{ sym:"\u00a5",      name:"Japanese yen",     dec:0, loc:"ja-JP" },
-    KRW:{ sym:"\u20a9",      name:"Korean won",       dec:0, loc:"ko-KR" }
+    USD:{ sym:"$",       name:"US dollar",        dec:2, loc:"en-US", def:5000   },  /* $50 */
+    EUR:{ sym:"\u20ac",      name:"Euro",             dec:2, loc:"en-IE", def:5000   },  /* EUR 50 */
+    GBP:{ sym:"\u00a3",      name:"British pound",    dec:2, loc:"en-GB", def:5000   },  /* GBP 50 */
+    SGD:{ sym:"S$",      name:"Singapore dollar", dec:2, loc:"en-SG", def:5000   },  /* S$50 */
+    CNY:{ sym:"CN\u00a5",    name:"Chinese yuan",     dec:2, loc:"zh-CN", def:30000  },  /* CN\u00a5300, three notes */
+    JPY:{ sym:"\u00a5",      name:"Japanese yen",     dec:0, loc:"ja-JP", def:5000   },  /* \u00a55,000 note */
+    KRW:{ sym:"\u20a9",      name:"Korean won",       dec:0, loc:"ko-KR", def:50000  }   /* \u20a950,000 note */
   };
   var CURRENCY_ORDER = ["USD","EUR","GBP","SGD","CNY","JPY","KRW"];
 
@@ -909,7 +951,7 @@
      — cents for USD, whole won for KRW. "" means the field is blank. */
   var state = {
     players: [],
-    defaultBuyIn: 2000,
+    defaultBuyIn: CURRENCIES.USD.def,
     currency: "USD",
     absorb: false
   };
@@ -1050,15 +1092,35 @@
     var from = state.currency;
     var to = CURRENCIES[currencySel.value] ? currencySel.value : "USD";
     if(to === from) return;
-    var rounded = convertAll(from, to);
+
+    /* On an untouched table, re-default to a buy-in that makes sense in the new
+       currency. Rescaling by the minor unit alone would turn $50 into 50 won, which
+       is not a buy-in in any game. On a table with real amounts in it, keep the old
+       behaviour and only fix the decimal places. */
+    var fresh = isPristine();
+    var rounded = false;
+    if(fresh){
+      state.defaultBuyIn = CURRENCIES[to].def;
+      state.players.forEach(function(p){
+        p.buyIns = [state.defaultBuyIn];
+        p.cashOut = 0;
+      });
+    } else {
+      rounded = convertAll(from, to);
+    }
+
     state.currency = to;
     applyCurrency();
     hideResult();          /* a settlement priced in the old currency must not linger */
     save();
     render();
-    showNotice(rounded
-      ? "Amounts were rounded to whole " + cur().name.toLowerCase() + "."
-      : "");
+    /* Switching mid-game keeps the numbers you typed — it does not apply an exchange
+       rate, and never has. Silently reinterpreting 120 dollars as 120 won is the kind
+       of thing you notice at settlement, so say it out loud. */
+    showNotice(fresh
+      ? "Standard buy-in set to " + fmt(state.defaultBuyIn) + "."
+      : "Amounts were kept as typed, not converted to " + cur().name.toLowerCase() + "." +
+        (rounded ? " Some were rounded to whole units." : ""));
   });
 
   /* ---------- theme ---------- */
@@ -1075,6 +1137,17 @@
   /* ---------- player helpers ---------- */
   function makePlayer(i){
     return { name:"Player " + (i + 1), buyIns:[state.defaultBuyIn], cashOut:0 };
+  }
+  /* True while nothing has actually been entered: every seat still holds exactly one
+     buy-in at the standard amount and nobody has cashed out. Switching currency is
+     free to re-default the table in that state, and must not touch it otherwise —
+     a game in progress is real data and its numbers are not ours to reinvent. */
+  function isPristine(){
+    return state.players.every(function(p){
+      return p.buyIns.length === 1 &&
+             p.buyIns[0] === state.defaultBuyIn &&
+             (p.cashOut === 0 || p.cashOut === "");
+    });
   }
   function totalIn(p){
     return p.buyIns.reduce(function(a, c){ return a + c; }, 0);
@@ -1220,6 +1293,11 @@
     });
     countOut.textContent = state.players.length;
     addBtn.disabled = state.players.length >= MAX_PLAYERS;
+    /* A greyed-out control that doesn't say why reads as broken rather than as a
+       limit. Both of these are hard bounds, so say which one you have hit. */
+    addBtn.title = addBtn.disabled
+      ? "A table holds " + MAX_PLAYERS + " players. Remove one to add another."
+      : "";
     defaultInput.value = toInput(state.defaultBuyIn);
     absorbBox.checked = state.absorb;
     updateTally();
@@ -1257,6 +1335,9 @@
     var remove = el("button", "btn tiny ghost", "Remove");
     remove.type = "button";
     remove.disabled = state.players.length <= MIN_PLAYERS;
+    remove.title = remove.disabled
+      ? "A game needs at least " + MIN_PLAYERS + " players."
+      : "";
     remove.setAttribute("aria-label", "Remove " + (p.name || "player " + (idx + 1)));
     remove.addEventListener("click", function(){
       state.players.splice(idx, 1);
@@ -1644,6 +1725,8 @@
   render();
 })();
 </script>
+
+<script src="consent.js" defer></script>
 
 </body>
 </html>
