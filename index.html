@@ -2,6 +2,14 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<!-- Partial CSP. script-src is deliberately absent: Google supports only strict
+     CSP with per-request nonces for AdSense (a domain allowlist breaks ad serving
+     as their domains rotate), and GitHub Pages serves static files and cannot
+     generate a nonce per request. frame-ancestors and X-Content-Type-Options are
+     header-only and cannot be set from a meta tag at all. What is here is the
+     subset that is both enforceable and safe for ads. See docs/launch-runbook.md. -->
+<meta http-equiv="Content-Security-Policy" content="object-src 'none'; base-uri 'none'; form-action 'none'; upgrade-insecure-requests">
+<meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Poker Ledger</title>
 <meta name="description" content="Track poker buy-ins and cash-outs for 2-9 players, then work out who pays whom.">

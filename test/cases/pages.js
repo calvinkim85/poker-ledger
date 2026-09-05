@@ -17,7 +17,15 @@ NAMES.forEach(function(n){
   eq(n + " declares a title", /<title>[^<]{10,}<\/title>/.test(p), true);
   eq(n + " declares a meta description", /<meta name="description" content="[^"]{40,}"/.test(p), true);
   eq(n + " sets a referrer policy", /<meta name="referrer" content="strict-origin-when-cross-origin">/.test(p), true);
+  eq(n + " sets the enforceable CSP directives",
+     /<meta http-equiv="Content-Security-Policy" content="object-src 'none'; base-uri 'none'; form-action 'none'; upgrade-insecure-requests">/.test(p), true);
+  eq(n + " does not allowlist ad domains, which would break serving over time",
+     p.indexOf("script-src") === -1, true);
 });
+
+eq("the app carries the same headers as the document pages",
+   /<meta name="referrer" content="strict-origin-when-cross-origin">/.test(html) &&
+   /Content-Security-Policy/.test(html), true);
 
 log("-- every indexable page is canonical and reachable --");
 NAMES.filter(function(n){ return n !== "404.html"; }).forEach(function(n){
