@@ -48,7 +48,18 @@ eq("guide is substantial enough to be worth indexing", guideWords > 800, true);
 log("-- no advertising is loaded --");
 eq("no AdSense script", html.indexOf("googlesyndication") === -1, true);
 eq("ad slot still hidden", /<aside class="adslot" id="adslot" hidden/.test(html), true);
-eq("ads.txt is comments only",
-   ads.split("\n").filter(function(l){
-     return l.trim() && l.trim().charAt(0) !== "#";
-   }).length, 0);
+/* ads.txt is comments-only until AdSense approves. Once it carries a line, that
+   line has to name the same publisher as consent.js — a mismatch here is the classic
+   way a site serves ads that earn nothing, and nothing else would notice. */
+var adsLines = ads.split("\n").filter(function(l){
+  return l.trim() && l.trim().charAt(0) !== "#";
+});
+var pub = (typeof consentJs === "string" ? consentJs : "").match(/var CLIENT = "ca-pub-(\d{16})";/);
+if (!pub) {
+  eq("ads.txt is comments only while advertising is off", adsLines.length, 0);
+} else {
+  eq("ads.txt carries exactly one publisher line", adsLines.length, 1);
+  eq("ads.txt names the same publisher as consent.js",
+     adsLines[0].indexOf("pub-" + pub[1]) !== -1, true);
+  eq("ads.txt declares a DIRECT relationship", /DIRECT/.test(adsLines[0]), true);
+}

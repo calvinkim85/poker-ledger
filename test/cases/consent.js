@@ -10,7 +10,14 @@
 log("-- the publisher ID is the single switch, and it is off --");
 eq("consent.js declares exactly one CLIENT constant",
    (consentJs.match(/var CLIENT = /g) || []).length, 1);
-eq("no publisher ID is committed", /var CLIENT = "";/.test(consentJs), true);
+/* Empty before approval, a real ID after. Asserting "always empty" would fail the
+   day advertising is switched on, so assert the shape instead: anything that is
+   neither blank nor a valid publisher ID is a typo that would silently serve no ads. */
+var clientVal = (consentJs.match(/var CLIENT = "([^"]*)";/) || [])[1];
+eq("the publisher ID is blank or well-formed",
+   clientVal === "" || /^ca-pub-\d{16}$/.test(clientVal), true);
+if (clientVal === "") log("   (advertising is off — no publisher ID)");
+else log("   (advertising is on — " + clientVal + ")");
 
 log("-- advertising is fetched only from inside the grant path --");
 eq("the AdSense host appears exactly once",

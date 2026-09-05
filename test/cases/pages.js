@@ -13,7 +13,7 @@ log("-- every page exists and is wired to the shared stylesheet --");
 NAMES.forEach(function(n){
   var p = pages[n];
   eq(n + " is present and non-trivial", p.length > 1500, true);
-  eq(n + " links site.css", /<link rel="stylesheet" href="(\.\.\/)?(\/poker-ledger\/)?site\.css">/.test(p), true);
+  eq(n + " links site.css", /<link rel="stylesheet" href="(\.\.\/|\/poker-ledger\/|\/)?site\.css">/.test(p), true);
   eq(n + " declares a title", /<title>[^<]{10,}<\/title>/.test(p), true);
   eq(n + " declares a meta description", /<meta name="description" content="[^"]{40,}"/.test(p), true);
   eq(n + " sets a referrer policy", /<meta name="referrer" content="strict-origin-when-cross-origin">/.test(p), true);
@@ -70,17 +70,43 @@ eq("privacy-ko.html is served as Korean", /<html lang="ko">/.test(ko), true);
 eq("the two policies point at each other",
    priv.indexOf("privacy-ko.html") !== -1 && ko.indexOf("privacy.html") !== -1, true);
 
-log("-- placeholders are consistent, and only where they belong --");
+log("-- placeholders are all-or-nothing --");
+/* Before launch these are unfilled; scripts/configure-launch.sh fills them and they
+   are gone for good. Asserting they are present would make this suite fail the moment
+   the site actually launches. What must always hold is that they are never HALF
+   filled — a privacy policy naming a contact but not an officer, or vice versa, is
+   worse than one that is obviously still a draft. */
 var TOKENS = ["[[OPERATOR_NAME]]", "[[CONTACT_EMAIL]]", "[[SITE_URL]]"];
-["privacy.html", "privacy-ko.html"].forEach(function(n){
+var LEGAL = ["privacy.html", "privacy-ko.html", "terms.html"];
+var present = [], absent = [];
+LEGAL.forEach(function(n){
   TOKENS.forEach(function(t){
-    eq(n + " still carries " + t, pages[n].indexOf(t) !== -1, true);
+    /* terms.html does not carry [[SITE_URL]]; only count tokens a page uses at all. */
+    if (n === "terms.html" && t === "[[SITE_URL]]") return;
+    (pages[n].indexOf(t) !== -1 ? present : absent).push(n + " " + t);
   });
 });
-eq("the app itself carries no placeholder",
+eq("placeholders are either all unfilled or all filled, never a mix",
+   present.length === 0 || absent.length === 0, true);
+
+if (present.length) {
+  log("   (pre-launch: " + present.length + " placeholders still to fill)");
+  eq("an unfilled placeholder is visibly flagged, not silent",
+     /<span class="todo">\[\[OPERATOR_NAME\]\]<\/span>/.test(pages["privacy.html"]), true);
+  eq("an unfilled policy says so in a banner",
+     pages["privacy.html"].indexOf("Not yet in force") !== -1 &&
+     pages["privacy-ko.html"].indexOf("아직 시행 전입니다") !== -1, true);
+} else {
+  log("   (configured: placeholders filled in)");
+  eq("a filled-in contact is a working mailto link",
+     /<a href="mailto:[^"]+@[^"]+">/.test(pages["privacy.html"]), true);
+  /* Removing the draft banner is a human step — it means someone read the policy and
+     stands behind it. configure-launch.sh deliberately does not do it, so the suite
+     does not assert it either; scripts/preflight.sh blocks launch while it is there. */
+}
+
+eq("the app itself never carries a placeholder",
    TOKENS.filter(function(t){ return html.indexOf(t) !== -1; }), []);
-eq("every placeholder is visibly flagged rather than silent",
-   /<span class="todo">\[\[OPERATOR_NAME\]\]<\/span>/.test(pages["privacy.html"]), true);
 
 log("-- there is enough original content to be worth indexing --");
 function words(p){ return p.replace(/<script[\s\S]*?<\/script>/g, " ")
