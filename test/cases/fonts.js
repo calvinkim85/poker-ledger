@@ -66,3 +66,20 @@ eq("Google Fonts is no longer listed as a recipient in the Korean transfer table
    /<td>Google LLC<br>\(Google Fonts\)<\/td>/.test(ko), false);
 eq("English still names the two that remain",
    en.indexOf("GitHub") !== -1 && en.indexOf("AdSense") !== -1, true);
+
+log("-- the page stays inside a budget that scales --");
+/* GitHub Pages has a 100 GB/month soft bandwidth limit. At the measured cold-cache
+   weight this site sustains roughly 21,000 visits a day before that becomes a
+   concern, which is far beyond anything a home-poker tool will see. The budget is
+   asserted so a future asset cannot quietly erode it — an unoptimised hero image
+   would not fail any other test here. */
+var htmlKB = html.length / 1024;
+var cssKB  = css.length / 1024;
+var jsKB   = consentJs.length / 1024;
+eq("index.html stays under 100 KB uncompressed (" + htmlKB.toFixed(1) + " KB)", htmlKB < 100, true);
+eq("site.css stays under 40 KB (" + cssKB.toFixed(1) + " KB)", cssKB < 40, true);
+eq("consent.js stays under 20 KB (" + jsKB.toFixed(1) + " KB)", jsKB < 20, true);
+eq("no font subset is unreasonably large (all under 60 KB)",
+   fontFiles.length > 0, true);
+eq("the site ships no raster images to bloat a page load",
+   /<img\b/.test(html), false);

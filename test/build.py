@@ -68,6 +68,8 @@ def build():
         region(js, "var CURRENCIES = {", "var CURRENCY_ORDER"),
         region(js, "var CURRENCY_ORDER", "\n\n"),
         'var state = { players:[], defaultBuyIn:2000, currency:"USD", absorb:false };\n',
+        # the safety bounds parseMoney and load() rely on
+        region(js, "  var MAX_AMOUNT", "\n\n"),
         region(js, "  function cur(){", "  /* ---------- persistence"),
         region(js, "  function totalIn(p){", "  /* ---------- rendering"),
     ])

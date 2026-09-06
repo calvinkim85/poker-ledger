@@ -1057,6 +1057,18 @@
 
   var KEY = "poker.ledger.v1";
   var MIN_PLAYERS = 2, MAX_PLAYERS = 9;
+  /* Bounds that keep every total inside the range JavaScript can represent exactly.
+     Money is held as an integer count of minor units, and integers stay exact only up
+     to Number.MAX_SAFE_INTEGER (9,007,199,254,740,991). Past that, arithmetic silently
+     rounds — which for a tool about who owes whom is the worst possible failure, since
+     nothing looks wrong.
+
+     Worst case here is MAX_PLAYERS x MAX_BUYINS x MAX_AMOUNT in minor units
+     = 9 x 100 x 1e11 = 9e13, comfortably inside the safe range with room to spare.
+     A billion of any supported currency is far past a plausible home game, so the
+     cap only ever catches a typo. */
+  var MAX_AMOUNT = 1e9;      /* per entry, in major units */
+  var MAX_BUYINS = 100;      /* rebuys per player */
   var THEMES = ["dark","light"];
   var THEME_LABEL = { dark:"Night", light:"Day" };
   /* Read once to pick a starting side; the page never follows the OS after that. */
@@ -1152,7 +1164,12 @@
     if(t === "" || t === "." || t === "-") return null;
     if(!/^-?\d*\.?\d*$/.test(t)) return null;
     var n = parseFloat(t);
-    if(!isFinite(n) || n < 0) return null;
+    /* Above MAX_AMOUNT the value cannot be held exactly once it is scaled to minor
+       units, and the old code returned it anyway: typing twenty 9s displayed
+       $100,000,000,000,000,000,000.00 — a different number from the one entered, with
+       no indication anything had happened. Rejecting marks the field and keeps the
+       last good value, which is the honest failure. */
+    if(!isFinite(n) || n < 0 || n > MAX_AMOUNT) return null;
     return Math.round(n * minor(state.currency));
   }
   function fmt(units){
@@ -1208,6 +1225,10 @@
       }));
     }catch(e){}
   }
+  function clampUnits(c){
+    if(typeof c !== "number" || !isFinite(c) || c < 0) return 0;
+    return Math.min(Math.round(c), MAX_AMOUNT * minor(state.currency));
+  }
   function load(){
     try{
       var s = JSON.parse(localStorage.getItem(KEY) || "null");
@@ -1223,10 +1244,10 @@
       state.players = s.players.slice(0, MAX_PLAYERS).map(function(p, i){
         return {
           name: typeof p.name === "string" ? p.name.slice(0, 40) : "Player " + (i + 1),
-          buyIns: (Array.isArray(p.buyIns) ? p.buyIns : []).map(function(c){
-            return (typeof c === "number" && isFinite(c) && c >= 0) ? Math.round(c) : 0;
-          }),
-          cashOut: (typeof p.cashOut === "number" && isFinite(p.cashOut) && p.cashOut >= 0) ? Math.round(p.cashOut) : 0
+          /* localStorage is editable by hand, so treat it as untrusted input and
+             apply the same bounds as the keyboard does. */
+          buyIns: (Array.isArray(p.buyIns) ? p.buyIns : []).slice(0, MAX_BUYINS).map(clampUnits),
+          cashOut: clampUnits(p.cashOut)
         };
       });
       return true;
@@ -1498,6 +1519,10 @@
     var rebuy = el("button", "btn tiny", "+ Rebuy");
     rebuy.type = "button";
     rebuy.addEventListener("click", function(){
+      if(p.buyIns.length >= MAX_BUYINS){
+        showNotice("That's " + MAX_BUYINS + " buy-ins for one player. Edit an amount instead.");
+        return;
+      }
       p.buyIns.push(state.defaultBuyIn);
       save();
       render();
