@@ -102,6 +102,10 @@ def build():
         "var robots = %s;" % js_string(read("robots.txt")),
         "var ads = %s;" % js_string(read("ads.txt")),
         "var manifest = %s;" % js_string(read("manifest.webmanifest")),
+        "var fontFiles = %s;" % ("[" + ", ".join(
+            js_string(f) for f in sorted(os.listdir(os.path.join(ROOT, "fonts")))
+            if f.endswith(".woff2")) + "]"),
+        "var hasOfl = %s;" % ("true" if os.path.exists(os.path.join(ROOT, "fonts", "OFL.txt")) else "false"),
         "var css = %s;" % js_string(read("site.css")),
         "var consentJs = %s;" % js_string(read("consent.js")),
         "var guideWords = %d;" % guide_words,

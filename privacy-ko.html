@@ -11,16 +11,16 @@
 <meta http-equiv="Content-Security-Policy" content="object-src 'none'; base-uri 'none'; form-action 'none'; upgrade-insecure-requests">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>개인정보처리방침 — Home Poker Ledger</title>
-<meta name="description" content="Home Poker Ledger가 저장하는 정보, 저장하지 않는 정보, 그리고 관여하는 세 곳의 제3자에 관한 개인정보처리방침입니다.">
+<meta name="description" content="Home Poker Ledger가 저장하는 정보, 저장하지 않는 정보, 그리고 관여하는 두 곳의 제3자에 관한 개인정보처리방침입니다.">
 <meta name="theme-color" content="#14523c">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <link rel="canonical" href="https://calvinkim85.github.io/poker-ledger/privacy-ko.html">
 <link rel="alternate" hreflang="en" href="https://calvinkim85.github.io/poker-ledger/privacy.html">
 <link rel="alternate" hreflang="ko" href="https://calvinkim85.github.io/poker-ledger/privacy-ko.html">
+<link rel="preload" href="fonts/plex-sans-400-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="fonts/bodoni-700-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="fonts/plex-mono-400-latin.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'%3E%3Crect width='180' height='180' rx='40' fill='%2314523c'/%3E%3Cpath d='M90 34c-14 20-42 34-42 58a26 26 0 0 0 42 20 26 26 0 0 0 42-20c0-24-28-38-42-58z' fill='%23fcfaf5'/%3E%3Cpath d='M84 112c2 14-4 22-10 28h32c-6-6-12-14-10-28z' fill='%23fcfaf5'/%3E%3C/svg%3E">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:opsz,wght@6..96,500;6..96,700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap">
 <link rel="stylesheet" href="site.css">
 <script>
 (function(){try{var s=JSON.parse(localStorage.getItem("poker.ledger.v1")||"null");
@@ -47,7 +47,7 @@ if(s&&(s.theme==="dark"||s.theme==="light"))document.documentElement.setAttribut
     <p class="lede">Home Poker Ledger(이하 &ldquo;서비스&rdquo;)는 전적으로 이용자의 브라우저
       안에서만 동작하는 계산기입니다. 회원가입도, 서버도, 데이터베이스도 없습니다.
       이용자가 입력한 숫자는 어디로도 전송되지 않습니다. 다만 그럼에도 관여하게 되는
-      세 곳의 제3자가 있으며, 이 방침은 그 부분까지 숨기지 않고 밝힙니다.</p>
+      두 곳의 제3자가 있으며, 이 방침은 그 부분까지 숨기지 않고 밝힙니다.</p>
 
     <h2>제1조 (개인정보의 처리 목적)</h2>
     <p>서비스는 이용자를 식별하기 위한 개인정보를 서버에 수집하거나 보관하지 않습니다.
@@ -104,7 +104,7 @@ if(s&&(s.theme==="dark"||s.theme==="light"))document.documentElement.setAttribut
       있는 경로 자체가 존재하지 않습니다.</p>
 
     <h2>제5조 (개인정보 처리의 위탁 및 국외 이전)</h2>
-    <p>다만 아래 세 곳은 서비스 제공 과정에서 이용자의 <strong>IP 주소와 브라우저
+    <p>다만 아래 두 곳은 서비스 제공 과정에서 이용자의 <strong>IP 주소와 브라우저
       정보</strong>를 전달받게 되며, 모두 미국에 소재합니다. 이는 개인정보의 국외 이전에
       해당합니다.</p>
     <div class="table-scroll">
@@ -118,12 +118,6 @@ if(s&&(s.theme==="dark"||s.theme==="light"))document.documentElement.setAttribut
             <td>GitHub의 서버 로그 정책에 따름(운영자는 접근 불가)</td>
           </tr>
           <tr>
-            <td>Google LLC<br>(Google Fonts)</td>
-            <td>미국 &middot; 화면에 사용되는 글꼴 전송</td>
-            <td>IP 주소, User-Agent</td>
-            <td>Google의 정책에 따름</td>
-          </tr>
-          <tr>
             <td>Google LLC<br>(Google AdSense)</td>
             <td>미국 &middot; 광고 게재 및 성과 측정</td>
             <td>IP 주소, 쿠키 및 유사 기기 식별자, 광고 조회·클릭 기록</td>
@@ -132,6 +126,10 @@ if(s&&(s.theme==="dark"||s.theme==="light"))document.documentElement.setAttribut
         </tbody>
       </table>
     </div>
+    <p>화면에 사용되는 글꼴은 이 사이트에서 직접 제공합니다. 과거에는 Google Fonts에서
+      불러왔고 그때는 방문할 때마다 Google이 이용자의 IP 주소를 전달받았으나,
+      <strong>해당 요청은 더 이상 발생하지 않으며</strong> Google Fonts는 이 서비스와
+      아무런 관련이 없습니다.</p>
     <p>이용자는 위 국외 이전에 동의하지 않을 수 있습니다. 광고 쿠키에 대한 동의는
       화면 하단의 링크에서 언제든지 철회할 수 있으며, 동의를 거부하거나 철회하더라도
       정산기의 모든 기능은 아무런 제한 없이 이용할 수 있습니다.</p>
