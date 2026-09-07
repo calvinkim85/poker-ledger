@@ -237,3 +237,23 @@ Object.keys(pages).concat(["__app__"]).forEach(function(n){
 });
 eq("404.html still loads the consent gate, from the right place",
    /<script src="\/consent\.js" defer><\/script>/.test(pages["404.html"]), true);
+
+log("-- every title fits a search result without truncating --");
+/* Google shows roughly 60 characters. A truncated title loses its ending, which is
+   where the distinguishing keywords sit. Five pages were over after the new guides
+   went in, the worst at 66. The brand suffix is kept only where it fits — Google
+   appends the site name itself in many results anyway. */
+Object.keys(pages).concat(["__app__"]).forEach(function(n){
+  var p = n === "__app__" ? html : pages[n];
+  var label = n === "__app__" ? "index.html" : n;
+  var t = (p.match(/<title>([^<]+)<\/title>/) || [])[1] || "";
+  eq(label + " has a title", t.length > 10, true);
+  eq(label + " title is <= 60 chars (" + t.length + ")", t.length <= 60, true);
+});
+
+log("-- and every description is a usable length --");
+Object.keys(pages).forEach(function(n){
+  var d = (pages[n].match(/<meta name="description" content="([^"]+)"/) || [])[1] || "";
+  eq(n + " description is 80-165 chars (" + d.length + ")",
+     d.length >= 80 && d.length <= 165, true);
+});
