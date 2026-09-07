@@ -151,11 +151,13 @@ Object.keys(pages).concat(["__app__"]).forEach(function(n){
   var p = n === "__app__" ? html : pages[n];
   var label = n === "__app__" ? "index.html" : n;
   eq(label + " does not list the Korean policy as a third sibling",
-     /<a href="[^"]*privacy\.html">Privacy<\/a><span class="sep">(&middot;|·)<\/span><a href="[^"]*privacy-ko\.html">/.test(p), false);
+     /<a href="[^"]*privacy\.html"[^>]*>Privacy<\/a><span class="sep">(&middot;|·)<\/span><a href="[^"]*privacy-ko\.html"/.test(p), false);
   eq(label + " pairs the Korean policy to the English one",
-     /<a href="[^"]*privacy\.html">Privacy<\/a>&#8202;<a href="[^"]*privacy-ko\.html"/.test(p), true);
+     /<a href="[^"]*privacy\.html" data-policy="en" hreflang="en">Privacy<\/a>&#8202;<a href="[^"]*privacy-ko\.html" data-policy="ko"/.test(p), true);
   eq(label + " tags the Korean link as Korean for assistive tech",
-     /<a href="[^"]*privacy-ko\.html" lang="ko" hreflang="ko"/.test(p), true);
+     /<a href="[^"]*privacy-ko\.html" data-policy="ko" lang="ko" hreflang="ko"/.test(p), true);
+  eq(label + " marks both policy links so the runtime can order them",
+     /data-policy="en"/.test(p) && /data-policy="ko"/.test(p), true);
   eq(label + " gives the Korean link an explanatory accessible name",
      /aria-label="개인정보처리방침 — the privacy policy in Korean"/.test(p), true);
 });

@@ -130,10 +130,55 @@
     banner.querySelector(".yes").focus();
   }
 
+
+  /* ---------- which privacy policy to offer first ----------
+
+     The policy exists in English and Korean. Whichever one the footer points at
+     first should be the one the reader can actually read.
+
+     This keys off the BROWSER'S language, not the visitor's location. Location would
+     need a third-party IP lookup, which would put another company back into the very
+     privacy policy we just removed one from — a bad trade on this page of all pages.
+     Language is also simply the better signal: a Korean speaker in California wants
+     Korean, and an English speaker in Seoul wants English. Geography gets both wrong.
+
+     English stays the default and the served HTML is unchanged, so crawlers index
+     both versions normally through their hreflang tags. Nothing redirects; only the
+     order of two links already on the page changes. */
+  function orderPolicyLinks(){
+    var en = document.querySelector('a[data-policy="en"]');
+    var ko = document.querySelector('a[data-policy="ko"]');
+    if(!en || !ko) return;
+
+    var langs = navigator.languages && navigator.languages.length
+      ? navigator.languages : [navigator.language || ""];
+    var prefersKo = false;
+    for(var i = 0; i < langs.length; i++){
+      if(/^ko\b/i.test(langs[i])){ prefersKo = true; break; }
+      if(/^en\b/i.test(langs[i])) break;   /* English ranked higher: leave it alone */
+    }
+    if(!prefersKo) return;
+
+    /* Swap which one leads. The Korean reader gets the Korean policy up front and
+       keeps an obvious way back to English. */
+    var koHref = ko.getAttribute("href"), enHref = en.getAttribute("href");
+    en.setAttribute("href", koHref);
+    en.setAttribute("lang", "ko");
+    en.setAttribute("hreflang", "ko");
+    en.textContent = "개인정보처리방침";
+    ko.setAttribute("href", enHref);
+    ko.removeAttribute("lang");
+    ko.setAttribute("hreflang", "en");
+    ko.setAttribute("aria-label", "The privacy policy in English");
+    ko.textContent = "(English)";
+  }
+
   function start() {
     /* The "Cookie settings" links only mean something when there is advertising to
        consent to. With no publisher ID they would open a dialog about nothing, so
        they stay hidden until there is. */
+    orderPolicyLinks();
+
     var links = document.querySelectorAll("[data-consent-reopen]");
     for (var i = 0; i < links.length; i++) {
       if (!CLIENT) { links[i].hidden = true; continue; }
