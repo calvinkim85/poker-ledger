@@ -63,25 +63,14 @@ eq("consent.js has Korean copy for the Korean page", consentJs.indexOf("개인�
 eq("the ad slot in the app stays hidden in markup",
    /<aside class="adslot" id="adslot" hidden/.test(html), true);
 
-log("-- the policy link follows the browser's language, not its location --");
-/* Location would need a third-party IP lookup, which would put another company back
-   into the privacy policy this very link points at. Language needs nothing, and is
-   the better signal anyway: a Korean speaker abroad wants Korean, an English speaker
-   in Seoul wants English. Geography gets both of those wrong.
+log("-- the footer is English everywhere, in every browser --");
+/* A previous version reordered these two links from navigator.language, so a Korean
+   browser was shown the Korean policy first. The site is deliberately English-only
+   apart from the policy Korean law requires, so that behaviour was removed: the
+   footer now renders identically for everyone and the Korean policy is simply one
+   labelled link away. */
+eq("consent.js no longer reorders the policy links",
+   /orderPolicyLinks/.test(consentJs), false);
+eq("consent.js does not read the browser's language at all",
+   /navigator\.languages?/.test(consentJs), false);
 
-   Verified in the browser across en-US, ko-KR, ko, ja-JP and mixed orderings. */
-eq("consent.js orders the policy links", /function orderPolicyLinks\(\)/.test(consentJs), true);
-eq("it reads navigator.languages, falling back to navigator.language",
-   /navigator\.languages/.test(consentJs) && /navigator\.language\b/.test(consentJs), true);
-eq("it matches Korean as a language tag, not a substring",
-   /\/\^ko\\b\/i/.test(consentJs), true);
-eq("a higher-ranked English preference wins",
-   /\/\^en\\b\/i\.test\(langs\[i\]\)\) break;/.test(consentJs), true);
-eq("English is the default — the function returns before touching anything",
-   consentJs.indexOf("if(!prefersKo) return;") !== -1, true);
-eq("nothing redirects, so both versions stay independently indexable",
-   /location\s*=|location\.replace|location\.href\s*=/.test(consentJs), false);
-eq("no geolocation or IP service is contacted",
-   /geoip|ipapi|geolocation|cloudflare|maxmind/i.test(consentJs), false);
-eq("the swapped Korean link still names itself in English for assistive tech",
-   consentJs.indexOf('"The privacy policy in English"') !== -1, true);
