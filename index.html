@@ -599,6 +599,25 @@
   .chip .x:hover{ color:var(--loss); }
   .chip .x:focus-visible{ outline:2px solid var(--gold); outline-offset:-2px; }
   .chip.bad{ border-color:var(--loss); border-style:solid; }
+
+  /* A seat someone has cashed out of. Deliberately not dimmed — the numbers on it
+     are the ones you are about to settle from and must stay perfectly legible. It
+     recedes by going quieter in the frame, not by losing contrast. */
+  .seat.settled{ border-color:var(--win); background:var(--ok-bg); }
+  .seat.settled .chips{ opacity:.72; }
+  .seat.settled input[readonly]{ background:transparent; border-style:dashed; cursor:default; }
+  .settled-tag{
+    font-family:var(--mono);
+    font-size:.54rem;
+    letter-spacing:.17em;
+    text-transform:uppercase;
+    color:var(--win);
+    border:1px solid var(--win);
+    border-radius:99px;
+    padding:2px 7px;
+    margin-left:8px;
+    white-space:nowrap;
+  }
   .no-chips{
     font-family:var(--mono);
     font-size:.68rem;
@@ -1220,7 +1239,7 @@
     try{
       localStorage.setItem(KEY, JSON.stringify({
         players: state.players.map(function(p){
-          return { name:p.name, buyIns:p.buyIns.slice(), cashOut:p.cashOut };
+          return { name:p.name, buyIns:p.buyIns.slice(), cashOut:p.cashOut, done:p.done === true };
         }),
         defaultBuyIn: state.defaultBuyIn,
         currency: state.currency,
@@ -1251,7 +1270,8 @@
           /* localStorage is editable by hand, so treat it as untrusted input and
              apply the same bounds as the keyboard does. */
           buyIns: (Array.isArray(p.buyIns) ? p.buyIns : []).slice(0, MAX_BUYINS).map(clampUnits),
-          cashOut: clampUnits(p.cashOut)
+          cashOut: clampUnits(p.cashOut),
+          done: p.done === true
         };
       });
       return true;
@@ -1335,7 +1355,7 @@
 
   /* ---------- player helpers ---------- */
   function makePlayer(i){
-    return { name:"Player " + (i + 1), buyIns:[state.defaultBuyIn], cashOut:0 };
+    return { name:"Player " + (i + 1), buyIns:[state.defaultBuyIn], cashOut:0, done:false };
   }
   /* True while nothing has actually been entered: every seat still holds exactly one
      buy-in at the standard amount and nobody has cashed out. Switching currency is
@@ -1345,7 +1365,8 @@
     return state.players.every(function(p){
       return p.buyIns.length === 1 &&
              p.buyIns[0] === state.defaultBuyIn &&
-             (p.cashOut === 0 || p.cashOut === "");
+             (p.cashOut === 0 || p.cashOut === "") &&
+             p.done !== true;
     });
   }
   function totalIn(p){
@@ -1471,6 +1492,10 @@
     return { transfers:transfers, unpaid:unpaid, unowed:unowed };
   }
 
+  function joinNames(names){
+    if(names.length === 1) return names[0];
+    return names.slice(0, -1).join(", ") + " and " + names[names.length - 1];
+  }
   function listNames(arr){
     var names = arr.map(function(x){ return x.name + " (" + fmt(x.amt) + ")"; });
     if(names.length === 1) return names[0];
@@ -1503,10 +1528,11 @@
   }
 
   function renderSeat(p, idx){
-    var seat = el("section", "seat");
+    var seat = el("section", "seat" + (p.done ? " settled" : ""));
 
     var head = el("div", "seat-head");
     head.appendChild(el("span", "seat-no", String(idx + 1)));
+    if(p.done) head.appendChild(el("span", "settled-tag", "cashed out"));
     var name = el("input");
     name.type = "text";
     name.value = p.name;
@@ -1522,6 +1548,8 @@
     var tools = el("div", "seat-tools");
     var rebuy = el("button", "btn tiny", "+ Rebuy");
     rebuy.type = "button";
+    rebuy.disabled = p.done === true;
+    if(rebuy.disabled) rebuy.title = "This player has cashed out. Reopen them to add a buy-in.";
     rebuy.addEventListener("click", function(){
       if(p.buyIns.length >= MAX_BUYINS){
         showNotice("That's " + MAX_BUYINS + " buy-ins for one player. Edit an amount instead.");
@@ -1534,6 +1562,24 @@
       if(chips.length) chips[chips.length - 1].focus();
     });
     tools.appendChild(rebuy);
+
+    /* A player who leaves at 11pm is one of the two commonest causes of a count that
+       will not reconcile: they take their money and their chips go back in the tray
+       before anyone writes the number down. Marking them cashed out locks the figure
+       in place and makes it obvious at a glance who is still playing. */
+    var done = el("button", "btn tiny" + (p.done ? " ghost" : ""), p.done ? "Reopen" : "Cash out");
+    done.type = "button";
+    done.title = p.done
+      ? "Put this player back in the game"
+      : "Record their final count and lock it";
+    done.setAttribute("aria-pressed", p.done ? "true" : "false");
+    done.addEventListener("click", function(){
+      p.done = !p.done;
+      save();
+      render();
+      hideResult();
+    });
+    tools.appendChild(done);
 
     var remove = el("button", "btn tiny ghost", "Remove");
     remove.type = "button";
@@ -1577,6 +1623,10 @@
     cash.inputMode = cur().dec === 0 ? "numeric" : "decimal";
     cash.value = toInput(p.cashOut);
     cash.setAttribute("aria-label", "Cash out for player " + (idx + 1));
+    if(p.done){
+      cash.readOnly = true;
+      cash.title = "Locked. Press Reopen to change it.";
+    }
     cash.addEventListener("input", function(){
       var c = parseMoney(cash.value);
       cash.classList.toggle("bad", c === null);
@@ -1665,6 +1715,22 @@
   /* ---------- calculate ---------- */
   function calculate(){
     var players = state.players;
+
+    /* "Settling before everyone is counted" is mistake number two in the guide: money
+       moves, then the last stack comes in and the total does not reconcile, so now you
+       are unwinding payments as well as hunting an error.
+
+       Only warn when the feature is actually in use. Someone who never presses Cash out
+       gets no nagging; someone who marked five of six players gets told which one is
+       missing, which is exactly the moment the mistake happens. */
+    var settled = players.filter(function(p){ return p.done === true; });
+    if(settled.length > 0 && settled.length < players.length){
+      var waiting = players.filter(function(p){ return p.done !== true; })
+                           .map(function(p, i){ return p.name || "Player " + (i + 1); });
+      showNotice("Still to cash out: " + joinNames(waiting) +
+                 ". Settling before everyone is counted is how payments get unwound.");
+    }
+
     var potIn = 0, potOut = 0;
     players.forEach(function(p){ potIn += totalIn(p); potOut += p.cashOut; });
     var diff = potOut - potIn;

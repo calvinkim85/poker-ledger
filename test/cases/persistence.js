@@ -1,34 +1,5 @@
 // needs: storage
 
-var CURRENCIES = { USD:{dec:2}, EUR:{dec:2}, GBP:{dec:2}, SGD:{dec:2}, CNY:{dec:2}, JPY:{dec:0}, KRW:{dec:0} };
-var THEMES=["auto","dark","light"]; var themeState="auto";
-var MIN_PLAYERS=2, MAX_PLAYERS=9, KEY="poker.ledger.v1";
-var state={players:[],defaultBuyIn:2000,currency:"USD"};
-var store={};
-var localStorage={ getItem:function(k){return store[k]||null;}, setItem:function(k,v){store[k]=v;} };
-
-  function load(){
-    try{
-      var s = JSON.parse(localStorage.getItem(KEY) || "null");
-      if(!s) return false;
-      if(THEMES.indexOf(s.theme) >= 0) themeState = s.theme;
-      state.currency = CURRENCIES[s.currency] ? s.currency : "USD";
-      if(typeof s.defaultBuyIn === "number" && isFinite(s.defaultBuyIn) && s.defaultBuyIn >= 0){
-        state.defaultBuyIn = Math.round(s.defaultBuyIn);
-      }
-      if(!Array.isArray(s.players) || s.players.length < MIN_PLAYERS) return false;
-      state.players = s.players.slice(0, MAX_PLAYERS).map(function(p, i){
-        return {
-          name: typeof p.name === "string" ? p.name.slice(0, 40) : "Player " + (i + 1),
-          buyIns: (Array.isArray(p.buyIns) ? p.buyIns : []).map(function(c){
-            return (typeof c === "number" && isFinite(c) && c >= 0) ? Math.round(c) : 0;
-          }),
-          cashOut: (typeof p.cashOut === "number" && isFinite(p.cashOut) && p.cashOut >= 0) ? Math.round(p.cashOut) : 0
-        };
-      });
-      return true;
-    }catch(e){ return false; }
-  }
 
 
 function reset(){ state={players:[],defaultBuyIn:2000,currency:"USD"}; themeState="auto"; }
@@ -65,3 +36,26 @@ eq("garbage returns false", load(), false);
 reset(); store[KEY]=JSON.stringify({players:[{name:"solo",buyIns:[100],cashOut:0}],currency:"EUR"});
 eq("one player rejected", load(), false);
 eq("but currency still applied", state.currency, "EUR");
+
+log("-- this suite tests the real load(), not a copy of it --");
+/* It used to carry a hand-written duplicate of load() plus its own CURRENCIES, state
+   and localStorage, which shadowed everything the harness extracts. The copy had
+   drifted: no MAX_BUYINS cap, no clampUnits, no `done` field. Eleven tests were
+   passing against a fossil.
+
+   These assertions exercise behaviour that only exists in the real implementation, so
+   the duplicate cannot quietly come back. */
+reset();
+var many = [];
+for (var i = 0; i < 250; i++) many.push(2000);
+store[KEY] = JSON.stringify({
+  players: [{ name:"A", buyIns:many, cashOut:1e30 },
+            { name:"B", buyIns:[2000], cashOut:0 }],
+  defaultBuyIn: 2000, currency:"USD", absorb:false, theme:"dark"
+});
+eq("load succeeds", load(), true);
+eq("buy-ins are capped at MAX_BUYINS", state.players[0].buyIns.length, MAX_BUYINS);
+eq("an absurd cash-out is clamped, not stored raw",
+   state.players[0].cashOut <= MAX_AMOUNT * 100, true);
+eq("and stays a safe integer", Number.isSafeInteger(state.players[0].cashOut), true);
+eq("the cashed-out flag is populated", state.players[0].done, false);

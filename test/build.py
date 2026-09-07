@@ -80,6 +80,7 @@ def build():
         region(js, "  var THEMES = [", "  var root ="),
         "var themeState = null;",
         STUBS,
+        func(js, "  function clampUnits(c){"),
         func(js, "  function load(){"),
     ])
     def js_string(text):
