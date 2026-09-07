@@ -117,7 +117,9 @@ def build():
             "%s: %s" % (js_string(n), js_string(read(n))) for n in pages),
     ])
 
-    preludes = {"core": HARNESS + core, "storage": HARNESS + storage, "site": site}
+    preludes = {"core": HARNESS + core,
+                "storage": HARNESS + storage + "\nvar html = %s;\n" % js_string(html),
+                "site": site}
 
     os.makedirs(BUILD, exist_ok=True)
     built = []

@@ -44,3 +44,27 @@ eq("the same table settles identically either way",
    JSON.stringify(settle(table(false))), JSON.stringify(settle(table(true))));
 eq("nets are unaffected",
    table(true).map(netOf).join(","), table(false).map(netOf).join(","));
+
+log("-- starting a new game clears the flag --");
+/* "New game" resets buy-ins and cash-outs but keeps the names. It did NOT reset this
+   flag, so last night's cashed-out players began tonight with locked cash-out fields
+   and a disabled Rebuy button. Shipped and caught afterwards, hence this test. */
+function newGame(players, defaultBuyIn){
+  players.forEach(function(p){
+    p.buyIns = [defaultBuyIn];
+    p.cashOut = 0;
+    p.done = false;
+  });
+  return players;
+}
+var after = newGame([{ name:"A", buyIns:[2000,2000], cashOut:9000, done:true },
+                     { name:"B", buyIns:[2000], cashOut:0, done:true }], 2000);
+eq("nobody stays cashed out", after.filter(function(p){ return p.done; }).length, 0);
+eq("buy-ins reset to one at the standard amount",
+   after.map(function(p){ return p.buyIns.join("+"); }).join(","), "2000,2000");
+eq("cash-outs reset", after.map(function(p){ return p.cashOut; }).join(","), "0,0");
+eq("names are kept", after.map(function(p){ return p.name; }).join(","), "A,B");
+
+log("-- the source really does reset it, not just this test's copy --");
+eq("index.html clears done in the New game handler",
+   /p\.cashOut = 0;\s*\n\s*p\.done = false;/.test(html || ""), true);

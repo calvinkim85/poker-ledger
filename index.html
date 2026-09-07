@@ -1323,6 +1323,7 @@
       state.players.forEach(function(p){
         p.buyIns = [state.defaultBuyIn];
         p.cashOut = 0;
+        p.done = false;   /* last night's cash-outs must not lock tonight's seats */
       });
     } else {
       rounded = convertAll(from, to);
