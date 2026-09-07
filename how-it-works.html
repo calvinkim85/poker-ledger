@@ -97,22 +97,104 @@ if(s&&(s.theme==="dark"||s.theme==="light"))document.documentElement.setAttribut
       which goes to the +$15 player. Three payments, four players, everyone square.</p>
 
     <h2>Step four: the count that doesn't reconcile</h2>
-    <p>When the chips don't match the buy-ins and you have already looked for the missing
-      entry, someone has to absorb the difference. Splitting it equally across the table
-      punishes people who lost money already. Charging whoever miscounted assumes you know
-      who that was.</p>
-    <p>The optional <strong>&ldquo;Cover the gap from the top&rdquo;</strong> setting puts it on the
-      players who finished ahead, beginning with the biggest winner &mdash; they are the
-      ones with winnings to give up, and a dent in a good night costs less than deepening
-      a loss.</p>
-    <p>The rule has one refinement that matters, and it is the reason the option is worth
-      using rather than doing it by hand. <strong>It never changes anyone's placing.</strong>
-      If the biggest winner is far enough clear, they cover the whole gap alone. If the
-      top two finished close, absorbing it alone would drop the leader below second place,
-      so they split it &mdash; half each for two, thirds for three, quarters for four.
-      The amounts move; the order does not.</p>
-    <p>When the count runs the other way and there are more chips than buy-ins, the same
-      logic applies in reverse: the biggest loser's debt comes down first.</p>
+    <p>When the chips don't match the buy-ins and you have already looked for the
+      missing entry, someone has to absorb the difference. Splitting it equally across
+      the table punishes people who lost money already. Charging whoever miscounted
+      assumes you know who that was, and you usually don't.</p>
+    <p>The optional <strong>&ldquo;Cover the gap from the top&rdquo;</strong> setting
+      puts it on the players who finished ahead, beginning with the biggest winner. They
+      are the ones with winnings to give up, and a dent in a good night costs less than
+      deepening somebody's loss.</p>
+
+    <h3>The rule: nobody's placing changes</h3>
+    <p>This is the constraint that makes the option worth using rather than doing it by
+      hand, and it is the whole reason the arithmetic is not obvious. <strong>Whoever
+      finished first still finishes first. Second is still second.</strong> Only the
+      amounts move.</p>
+    <p>That is harder than it sounds. Take the obvious approach &mdash; put the whole gap
+      on the biggest winner &mdash; and if the top two finished close together, the
+      leader drops below second place. You have not settled the night; you have rewritten
+      who won it.</p>
+
+    <h3>How it actually decides</h3>
+    <p>It grows the group one player at a time, and stops at the first size that works:</p>
+    <ol>
+      <li><strong>Can the leader alone cover it</strong> and still finish above second
+        place? If yes, they do, and nobody else is touched.</li>
+      <li>If not, <strong>try the top two</strong> sharing it equally. Can they take half
+        each and both stay above third?</li>
+      <li>If not, <strong>the top three</strong> taking a third each. Then four. And so
+        on, as far as it needs to go.</li>
+    </ol>
+    <p>The first group that can absorb its share without anyone slipping below the player
+      beneath them is the group that pays.</p>
+
+    <h3>Worked examples</h3>
+    <p>Alice finishes <strong>+$40</strong>, Bob <strong>+$32</strong>.</p>
+    <ul>
+      <li><strong>$4 unaccounted.</strong> Alice covers it alone: +$36 against Bob's
+        +$32. She is still ahead, so nobody else is involved.</li>
+      <li><strong>$10 unaccounted.</strong> Alone, Alice would drop to +$30 &mdash;
+        behind Bob. So they halve it: <strong>+$35 and +$27</strong>. Alice still leads,
+        the gap is covered, and the order is unchanged.</li>
+    </ul>
+
+    <h3>The detail that took the most care</h3>
+    <p>When a gap does not divide evenly, somebody has to take the extra penny. That
+      penny goes to the <strong>bottom</strong> of the paying group, never the top.</p>
+    <p>It sounds like a triviality and it is not: hand the extra unit to the leader and
+      you can put them exactly one penny behind second place &mdash; the very outcome the
+      whole rule exists to prevent. The cheapest possible violation of the constraint,
+      and the easiest to miss.</p>
+
+    <h3>When the gap outruns the winnings</h3>
+    <p>If the shortfall is larger than everything the winners collectively won, no group
+      can absorb it and stay ranked. The calculator then spreads it across everyone,
+      zeroing out anyone who cannot cover their share and re-dividing what is left among
+      the rest.</p>
+    <p>This is only reachable on a badly wrong count &mdash; if you get here, the real
+      answer is that a buy-in went unrecorded, and it is worth another look before
+      accepting the result.</p>
+
+    <h3>Which side pays depends on which way the count is wrong</h3>
+    <p>Everything above describes the commoner case: <strong>more chips on the table
+      than money went in</strong>, usually a rebuy nobody recorded. The table is claiming
+      money that was never paid in, so the winners cannot all be paid in full &mdash; and
+      it is the winners who give up part of their win.</p>
+    <p>When the count runs the other way and the table is <strong>short</strong>, the
+      same logic runs in reverse. The losers collectively owe more than the winners are
+      claiming, so the <strong>biggest loser's debt comes down first</strong>, then the
+      two biggest, and so on &mdash; under the identical constraint that nobody's placing
+      changes.</p>
+
+    <h3>Leave it off if you can find the error</h3>
+    <p>The option is off by default, deliberately. A gap almost always means a rebuy
+      nobody wrote down, and finding it is strictly better than distributing it: the
+      books balance honestly and nobody gives up anything they won. Turn this on once you
+      have genuinely looked and the money is still missing.</p>
+
+    <h2>Cashing out a player who leaves early</h2>
+    <p>A player who leaves at 11pm is one of the two commonest reasons a count will not
+      reconcile. They count their chips, take their money, and the chips go back in the
+      tray &mdash; and if nobody wrote the number down first, it can never be checked,
+      because the evidence has been mixed back into the tray.</p>
+    <p>Each seat has a <b>Cash out</b> button for this. Enter their final count, press
+      it, and three things happen:</p>
+    <ul>
+      <li>The cash-out figure is <strong>locked</strong>, so it cannot drift later.</li>
+      <li><b>+ Rebuy</b> is disabled &mdash; they have left, so a further buy-in would be
+        an error rather than a choice.</li>
+      <li>The seat is <strong>marked</strong>, so a glance tells you who is still playing.</li>
+    </ul>
+    <p><b>Reopen</b> reverses it if they come back or the number was wrong.</p>
+    <p>It also guards the second commonest mistake. Press <b>Calculate settlement</b>
+      while some players are marked and others are not, and it names the ones still to
+      be counted. Settling before everyone is down means money moves, then the last
+      stack comes in wrong, and now you are unwinding payments as well as hunting an
+      error.</p>
+    <p>The button changes no arithmetic whatsoever. The same numbers settle identically
+      whether or not anyone presses it &mdash; it records <em>where you are</em> in the
+      night, not what anyone is owed.</p>
 
     <h2>Rounding, and why yen and won behave differently</h2>
     <p>All arithmetic is done in the currency's smallest unit &mdash; cents for dollars,

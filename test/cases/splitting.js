@@ -134,3 +134,55 @@ fixtures.forEach(function(f){
 eq("settle() == settleNets()", same, fixtures.length);
 eq("residual still reported when off", shape(settle(fixtures[0])).u, ["Alice:500"]);
 eq("short residual still reported",    shape(settle(fixtures[1])).o, ["Bob:500"]);
+
+log("== the behaviour how-it-works.html now documents ==");
+/* how-it-works.html describes this rule in detail. Documentation that is not asserted
+   drifts away from the code it describes, so each claim it makes is checked here. */
+
+log("-- claim: the group grows one player at a time, stopping at the first that works --");
+/* Alice +40, Bob +32. A $4 gap fits on Alice alone; a $10 gap does not. */
+eq("a small gap is taken by the leader alone",
+   splitFromTop([4000, 3200], 400), [400, 0]);
+var ten = splitFromTop([4000, 3200], 1000);
+eq("a gap that would drop the leader is shared by two", ten[1] > 0, true);
+eq("and the two shares add up to the gap", ten[0] + ten[1], 1000);
+eq("the leader is still ahead afterwards", 4000 - ten[0] > 3200 - ten[1], true);
+
+log("-- claim: the odd unit goes to the BOTTOM of the paying group, never the top --");
+/* This is the claim most worth testing. Give the extra unit to the leader and you can
+   put them one unit behind second place, which is the exact outcome the rule exists to
+   prevent — the cheapest possible violation of it. */
+var odd = splitFromTop([5000, 5000], 3);      /* 3 does not divide by 2 */
+eq("an odd gap is fully allocated", odd[0] + odd[1], 3);
+eq("the leader takes the smaller half", odd[0] <= odd[1], true);
+/* Magnitudes must be close enough that no smaller group can absorb it, or the leader
+   simply pays alone — which is correct, and is what my first attempt accidentally
+   asserted against. */
+var odd3 = splitFromTop([1000, 999, 998], 7);
+eq("7 across three is fully allocated", odd3[0] + odd3[1] + odd3[2], 7);
+eq("all three really are paying", odd3[0] > 0 && odd3[1] > 0 && odd3[2] > 0, true);
+eq("the top of the group never takes more than the bottom", odd3[0] <= odd3[2], true);
+
+log("-- claim: nobody's placing changes, across many random gaps --");
+var bad = 0;
+for (var g = 1; g <= 400; g++) {
+  var mags = [9000, 8000, 6500, 6000, 2000];
+  var before = mags.slice();
+  var cut = splitFromTop(mags, g);
+  var after = before.map(function(v, i){ return v - cut[i]; });
+  for (var i = 1; i < after.length; i++) if (after[i - 1] < after[i]) bad++;
+}
+eq("400 different gaps, nobody ever overtakes anybody", bad, 0);
+
+log("-- claim: which side pays depends on which way the count is wrong --");
+/* diff = potOut - potIn. Positive means MORE chips than money went in, so the winners
+   cannot all be paid and they give up part of the win. Negative means the table is
+   short, so the losers' debts come down. how-it-works.html had these backwards — the
+   original text did too, and I repeated it — which is what this pair now pins down. */
+var tbl = [{ name:"A", net:5000 }, { name:"B", net:3000 }, { name:"C", net:-8000 }];
+eq("more chips than buy-ins -> the winners give up part of the win",
+   absorbGap(tbl, 1000).side, "winners");
+eq("a short table -> the losers' debts come down",
+   absorbGap(tbl, -1000).side, "losers");
+var short = absorbGap([{ name:"A", net:-5000 }, { name:"B", net:-3000 }, { name:"C", net:8000 }], -1000);
+eq("and it is the biggest loser who is touched first", (short.taken[0] || 0) > 0, true);

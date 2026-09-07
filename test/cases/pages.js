@@ -224,3 +224,16 @@ Object.keys(HEADINGS).forEach(function(n){
 });
 eq("the home page h1 is the product name, which is correct for a home page",
    (html.match(/<h1>([^<]+)<\/h1>/) || [])[1], "Home Poker Ledger");
+
+log("-- no page requests a path from the old project-page URL --");
+/* The site moved from /poker-ledger/ to an apex domain. configure-launch.sh rewrote
+   href="/poker-ledger/..." but not src="...", so 404.html was left loading consent.js
+   from a path that 404s — on the one page a lost visitor actually sees. */
+Object.keys(pages).concat(["__app__"]).forEach(function(n){
+  var p = n === "__app__" ? html : pages[n];
+  var label = n === "__app__" ? "index.html" : n;
+  eq(label + " has no leftover /poker-ledger/ path",
+     /(?:href|src)="\/poker-ledger\//.test(p), false);
+});
+eq("404.html still loads the consent gate, from the right place",
+   /<script src="\/consent\.js" defer><\/script>/.test(pages["404.html"]), true);

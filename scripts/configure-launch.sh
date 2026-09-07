@@ -77,7 +77,10 @@ for f in files:
     # 404.html carries /poker-ledger/ roots so it works on a project page. Only an
     # apex domain serves the site from the root, so only rewrite them then.
     if f == "404.html" and apex:
+        # href AND src: consent.js is loaded with src= and was missed the first time,
+        # leaving the 404 page requesting a script that no longer existed.
         out = out.replace('href="/poker-ledger/', 'href="/')
+        out = out.replace('src="/poker-ledger/', 'src="/')
     if out != src:
         open(f, "w", encoding="utf-8").write(out)
         changed += 1

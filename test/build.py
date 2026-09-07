@@ -97,7 +97,9 @@ def build():
     pages = ["privacy.html", "privacy-ko.html", "terms.html", "404.html",
              "how-it-works.html", "guides/index.html",
              "guides/chip-denominations.html", "guides/rebuys-and-late-entries.html",
-             "guides/being-the-banker.html", "guides/settlement-mistakes.html"]
+             "guides/being-the-banker.html", "guides/settlement-mistakes.html",
+             "guides/first-home-game.html", "guides/cash-game-or-tournament.html",
+             "guides/when-someone-cannot-pay.html"]
     site = HARNESS + "\n".join([
         "var html = %s;" % js_string(html),
         "var head = %s;" % js_string(html[:html.find("</head>")]),
