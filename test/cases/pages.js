@@ -161,3 +161,21 @@ Object.keys(pages).concat(["__app__"]).forEach(function(n){
   eq(label + " gives the Korean link an explanatory accessible name",
      /aria-label="개인정보처리방침 — the privacy policy in Korean"/.test(p), true);
 });
+
+log("-- the operator's GitHub username is not exposed anywhere --");
+/* The site is hosted on GitHub Pages, which the privacy policy must disclose — that
+   is a real recipient of visitor IP addresses. But the HOST does not have to be named
+   with a personal account handle, and the author would rather not be findable from
+   the site. So: "GitHub Pages" stays, github.com/<username>/... does not. */
+Object.keys(pages).concat(["__app__"]).forEach(function(n){
+  var p = n === "__app__" ? html : pages[n];
+  var label = n === "__app__" ? "index.html" : n;
+  eq(label + " does not name the operator's GitHub account",
+     /calvinkim85/.test(p), false);
+  eq(label + " links no personal repository",
+     /github\.com\/[A-Za-z0-9-]+\/poker-ledger/.test(p), false);
+});
+eq("the privacy policy still discloses GitHub Pages as the host, which it must",
+   /GitHub Pages/.test(pages["privacy.html"]), true);
+eq("the Korean policy does too",
+   /GitHub/.test(pages["privacy-ko.html"]), true);
