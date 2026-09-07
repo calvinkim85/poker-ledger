@@ -181,3 +181,20 @@ eq("the privacy policy still discloses GitHub Pages as the host, which it must",
    /GitHub Pages/.test(pages["privacy.html"]), true);
 eq("the Korean policy does too",
    /GitHub/.test(pages["privacy-ko.html"]), true);
+
+log("-- the published contact is the domain's own address --");
+/* The site briefly published a personal Gmail. That address was disabled by its
+   provider, which left a legal page pointing at a mailbox that bounced — and PIPA
+   requires the contact to be reachable. The published address is now the domain's
+   own, so where mail actually lands is a private forwarding detail that can change
+   without touching the site, and no personal inbox is exposed. */
+["privacy.html", "privacy-ko.html", "terms.html"].forEach(function(n){
+  eq(n + " publishes the domain contact address",
+     /mailto:privacy@homepokerledger\.com/.test(pages[n]), true);
+});
+Object.keys(pages).concat(["__app__"]).forEach(function(n){
+  var p = n === "__app__" ? html : pages[n];
+  var label = n === "__app__" ? "index.html" : n;
+  eq(label + " exposes no personal mailbox",
+     /gmail\.com|naver\.com|daum\.net|hanmail\.net|outlook\.com/i.test(p), false);
+});
