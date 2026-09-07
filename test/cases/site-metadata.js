@@ -102,3 +102,26 @@ log("-- the differentiator is in the title, where it drives the click --");
    the click decision. */
 eq("the title says it is free", /free/i.test(title), true);
 eq("the description still says it too", /free/i.test(desc), true);
+
+log("-- the favicon can actually appear in Google results --");
+/* Google's requirements: the favicon must be a crawlable FILE, and the supported
+   formats are BMP, GIF, ICO, PNG, JPEG, PPM and TIFF. Both of the previous setups
+   failed it — the <link> used a data: URI (nothing to crawl) and the only real icon
+   file was an SVG (not a supported format). Browsers still prefer the SVG, so both
+   are declared and the PNG is listed first. */
+eq("no data: URI favicon — Googlebot cannot crawl one",
+   /rel="icon"[^>]*href="data:/.test(html), false);
+eq("a PNG favicon is declared",
+   /<link rel="icon" type="image\/png" sizes="48x48" href="[^"]*favicon-48\.png">/.test(html), true);
+eq("at least 96px is offered — Google recommends larger than 48",
+   /favicon-96\.png/.test(html) && /favicon-192\.png/.test(html), true);
+eq("the SVG is kept for browsers, after the PNGs",
+   html.indexOf("favicon-192.png") < html.indexOf('type="image/svg+xml"'), true);
+eq("the apple touch icon is a real raster file",
+   /rel="apple-touch-icon"[^>]*favicon-192\.png/.test(html), true);
+eq("every page declares the icon, not just the home page",
+   Object.keys(pages).every(function(n){ return /favicon-48\.png/.test(pages[n]); }), true);
+
+var mIcons = (JSON.parse(manifest).icons || []);
+eq("the manifest ships raster icons for install prompts",
+   mIcons.filter(function(i){ return i.type === "image/png"; }).length >= 2, true);
