@@ -65,9 +65,19 @@ eq("buy-ins reset to one at the standard amount",
 eq("cash-outs reset", after.map(function(p){ return p.cashOut; }).join(","), "0,0");
 eq("names are kept", after.map(function(p){ return p.name; }).join(","), "A,B");
 
-log("-- the source really does reset it, not just this test's copy --");
-eq("index.html clears done in the New game handler",
-   /p\.cashOut = 0;\s*\n\s*p\.done = false;/.test(html || ""), true);
+log("-- the source really does reset it, and in the RIGHT handler --");
+/* The first version of this test matched "p.cashOut = 0" followed by "p.done = false"
+   anywhere in the file. The fix had landed in the currency-switch branch instead of
+   the New game handler — the two blocks differ only by indentation — so the assertion
+   passed while New game stayed broken. Anchor on the confirm() text, which appears in
+   exactly one place and cannot drift. */
+var newGameBody = (html || "").split('confirm("Start a new game?')[1] || "";
+newGameBody = newGameBody.slice(0, 400);
+eq("the New game handler exists in the source", newGameBody.length > 0, true);
+eq("it resets buy-ins", /p\.buyIns = \[state\.defaultBuyIn\];/.test(newGameBody), true);
+eq("it resets cash-outs", /p\.cashOut = 0;/.test(newGameBody), true);
+eq("it clears the cashed-out flag", /p\.done = false;/.test(newGameBody), true);
+eq("and it re-renders afterwards", /render\(\);/.test(newGameBody), true);
 
 log("-- the warning clears once everyone is counted --");
 /* It was set only when the warning applied, so after the last player was marked the
