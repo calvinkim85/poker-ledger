@@ -1496,6 +1496,9 @@
     if(names.length === 1) return names[0];
     return names.slice(0, -1).join(", ") + " and " + names[names.length - 1];
   }
+  /* listNames() returns one name or several, so a verb after it has to agree:
+     "Alice owes", but "Alice and Bob owe". */
+  function verb(count, singular, plural){ return count === 1 ? singular : plural; }
   function listNames(arr){
     var names = arr.map(function(x){ return x.name + " (" + fmt(x.amt) + ")"; });
     if(names.length === 1) return names[0];
@@ -1777,11 +1780,11 @@
         }).sort(function(a, b){ return b.amt - a.amt; });
         short.textContent = (adj.side === "winners"
           ? "Split from the top: " + listNames(who) + " gave up that much of the win, so the payments below settle exactly. Everyone finishes in the order they placed."
-          : "Split from the top: " + listNames(who) + " owes that much less, so the payments below settle exactly. Everyone finishes in the order they placed.");
+          : "Split from the top: " + listNames(who) + " " + verb(who.length, "owes", "owe") + " that much less, so the payments below settle exactly. Everyone finishes in the order they placed.");
       }else if(res.unpaid.length){
         short.textContent = "Even after every payment below, " + listNames(res.unpaid) + " still cannot be paid in full.";
       }else if(res.unowed.length){
-        short.textContent = "Even after every payment below, " + listNames(res.unowed) + " still owes money with nobody to pay.";
+        short.textContent = "Even after every payment below, " + listNames(res.unowed) + " still " + verb(res.unowed.length, "owes", "owe") + " money with nobody to pay.";
       }
       if(short.textContent) banner.appendChild(short);
     }

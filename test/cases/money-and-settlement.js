@@ -156,3 +156,29 @@ use("KRW");
 var k = tally([P("Alice",[20],60), P("Bob",[20,20],0), P("Carol",[20],20)]);
 eq("KRW diff 0", k.diff, 0);
 eq("KRW one transfer", k.t, ["Bob->Alice ₩40"]);
+
+log("-- verbs agree with the number of names --");
+/* listNames() returns "Alice" or "Alice and Bob", so anything following it has to
+   agree. Two messages read "Alice and Bob still owes money" and "Alice and Bob owes
+   that much less". Flagged in the original audit and left unfixed until now. */
+eq("one name takes the singular", verb(1, "owes", "owe"), "owes");
+eq("two names take the plural",   verb(2, "owes", "owe"), "owe");
+eq("three names take the plural", verb(3, "owes", "owe"), "owe");
+eq("zero takes the plural too — 'no players owe'", verb(0, "owes", "owe"), "owe");
+
+/* The sentences themselves, assembled the way calculate() assembles them. */
+function unowedLine(names){
+  var arr = names.map(function(n, i){ return { name:n, amt:2000 * (i + 1) }; });
+  return "Even after every payment below, " + listNames(arr) + " still " +
+         verb(arr.length, "owes", "owe") + " money with nobody to pay.";
+}
+eq("one player reads 'still owes money'",
+   /still owes money with nobody to pay\.$/.test(unowedLine(["Alice"])), true);
+eq("two players read 'still owe money'",
+   /still owe money with nobody to pay\.$/.test(unowedLine(["Alice", "Bob"])), true);
+eq("two players never read 'still owes'",
+   /still owes/.test(unowedLine(["Alice", "Bob"])), false);
+eq("three players are plural too",
+   /still owe money/.test(unowedLine(["Alice", "Bob", "Cara"])), true);
+eq("the names are still listed and joined",
+   /Alice .* and Bob /.test(unowedLine(["Alice", "Bob"])), true);
