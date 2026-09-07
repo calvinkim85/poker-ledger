@@ -198,3 +198,29 @@ Object.keys(pages).concat(["__app__"]).forEach(function(n){
   eq(label + " exposes no personal mailbox",
      /gmail\.com|naver\.com|daum\.net|hanmail\.net|outlook\.com/i.test(p), false);
 });
+
+log("-- headings describe the page rather than label the nav --");
+/* The H1 is the strongest on-page signal after <title>, and these were navigation
+   labels: "Guides", "The banker", "Rebuys". They told a search engine nothing about
+   what the page covers. Each is now a description, with the subtitle carrying the
+   detail so the header still reads as a header. */
+var HEADINGS = {
+  "how-it-works.html":                   "settlement",
+  "guides/index.html":                   "poker",
+  "guides/chip-denominations.html":      "chip",
+  "guides/rebuys-and-late-entries.html": "rebuy",
+  "guides/being-the-banker.html":        "banker",
+  "guides/settlement-mistakes.html":     "settlement"
+};
+Object.keys(HEADINGS).forEach(function(n){
+  var h1 = (pages[n].match(/<h1>([^<]+)<\/h1>/) || [])[1] || "";
+  eq(n + " has exactly one h1", (pages[n].match(/<h1>/g) || []).length, 1);
+  eq(n + " h1 describes rather than labels (" + JSON.stringify(h1) + ")",
+     h1.split(/\s+/).length >= 3, true);
+  eq(n + " h1 carries its subject word '" + HEADINGS[n] + "'",
+     new RegExp(HEADINGS[n], "i").test(h1), true);
+  eq(n + " h1 mentions poker where the page is about poker",
+     /poker/i.test(h1) || n === "how-it-works.html", true);
+});
+eq("the home page h1 is the product name, which is correct for a home page",
+   (html.match(/<h1>([^<]+)<\/h1>/) || [])[1], "Home Poker Ledger");
