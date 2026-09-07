@@ -68,3 +68,15 @@ eq("names are kept", after.map(function(p){ return p.name; }).join(","), "A,B");
 log("-- the source really does reset it, not just this test's copy --");
 eq("index.html clears done in the New game handler",
    /p\.cashOut = 0;\s*\n\s*p\.done = false;/.test(html || ""), true);
+
+log("-- the warning clears once everyone is counted --");
+/* It was set only when the warning applied, so after the last player was marked the
+   previous run's message stayed on screen — telling you to count people you had just
+   counted. Found on the live site, not locally. */
+eq("calculate() sets the notice unconditionally, with an empty string when clear",
+   /showNotice\(settled\.length > 0 && waiting\.length > 0[\s\S]{0,240}: ""\);/.test(html || ""), true);
+eq("the warning condition requires someone still waiting",
+   /waiting\.length > 0/.test(html || ""), true);
+eq("the waiting list is computed before the branch, not inside it",
+   (html || "").indexOf("var waiting = players.filter") <
+   (html || "").indexOf("showNotice(settled.length"), true);

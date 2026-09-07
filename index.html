@@ -1725,12 +1725,16 @@
        gets no nagging; someone who marked five of six players gets told which one is
        missing, which is exactly the moment the mistake happens. */
     var settled = players.filter(function(p){ return p.done === true; });
-    if(settled.length > 0 && settled.length < players.length){
-      var waiting = players.filter(function(p){ return p.done !== true; })
-                           .map(function(p, i){ return p.name || "Player " + (i + 1); });
-      showNotice("Still to cash out: " + joinNames(waiting) +
-                 ". Settling before everyone is counted is how payments get unwound.");
-    }
+    var waiting = players.filter(function(p){ return p.done !== true; })
+                         .map(function(p, i){ return p.name || "Player " + (i + 1); });
+    /* Always set the notice, never only when the warning applies. Setting it
+       conditionally left the previous run's warning on screen after the last player
+       was marked — telling you to count people you had just counted. Calculate owns
+       this line for the duration of a settlement. */
+    showNotice(settled.length > 0 && waiting.length > 0
+      ? "Still to cash out: " + joinNames(waiting) +
+        ". Settling before everyone is counted is how payments get unwound."
+      : "");
 
     var potIn = 0, potOut = 0;
     players.forEach(function(p){ potIn += totalIn(p); potOut += p.cashOut; });
