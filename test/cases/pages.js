@@ -8,6 +8,7 @@
    if one lost its canonical tag or stopped linking the stylesheet. */
 
 var NAMES = Object.keys(pages);
+var SITE = "https://homepokerledger.com/";
 
 log("-- every page exists and is wired to the shared stylesheet --");
 NAMES.forEach(function(n){
@@ -132,16 +133,28 @@ log("-- every guide carries valid Article markup --");
    site must not be able to ship without schema just because nobody edited a list.
    The ItemList on guides/index.html is the drift risk here — it names every guide,
    so adding one silently makes the index's own markup wrong. */
-function ld(p){
-  var m = p.match(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/);
-  if (!m) return null;
-  try { return JSON.parse(m[1]); } catch (e) { return "unparseable"; }
+/* Pages carry more than one block now — an Article and a BreadcrumbList — so this
+   parses all of them and selects by type. Matching only the first block would have
+   silently stopped checking whichever one happened to be written second. */
+function ldAll(p){
+  var out = [], re = /<script type="application\/ld\+json">([\s\S]*?)<\/script>/g, m;
+  while ((m = re.exec(p)) !== null) {
+    try { out.push(JSON.parse(m[1])); } catch (e) { out.push("unparseable"); }
+  }
+  return out;
 }
-var ARTICLES = NAMES.filter(function(n){
+function ld(p, type){
+  var all = ldAll(p);
+  if (all.indexOf("unparseable") !== -1) return "unparseable";
+  for (var i = 0; i < all.length; i++) if (all[i]["@type"] === type) return all[i];
+  return null;
+}
+var GUIDES = NAMES.filter(function(n){
   return n.indexOf("guides/") === 0 && n !== "guides/index.html";
 });
+var ARTICLES = GUIDES.concat(["how-it-works.html"]);
 ARTICLES.forEach(function(n){
-  var o = ld(pages[n]);
+  var o = ld(pages[n], "Article");
   eq(n + " has parseable JSON-LD", o !== null && o !== "unparseable", true);
   if (!o || o === "unparseable") return;
   eq(n + " is typed Article", o["@type"], "Article");
@@ -163,16 +176,46 @@ ARTICLES.forEach(function(n){
   eq(n + " schema URL matches its canonical",
      !!canon && o.mainEntityOfPage["@id"] === canon[1] && o.url === canon[1], true);
 });
-var idx = ld(pages["guides/index.html"]);
+var idx = ld(pages["guides/index.html"], "CollectionPage");
 eq("guides/index.html is typed CollectionPage", idx && idx["@type"], "CollectionPage");
 eq("the index ItemList counts every guide and no others",
-   idx && idx.mainEntity.numberOfItems === ARTICLES.length &&
-   idx.mainEntity.itemListElement.length === ARTICLES.length, true);
+   idx && idx.mainEntity.numberOfItems === GUIDES.length &&
+   idx.mainEntity.itemListElement.length === GUIDES.length, true);
 eq("every guide appears in the index ItemList",
-   ARTICLES.filter(function(n){
+   GUIDES.filter(function(n){
      var c = pages[n].match(/<link rel="canonical" href="([^"]+)"/)[1];
      return !idx.mainEntity.itemListElement.some(function(it){ return it.url === c; });
    }), []);
+
+log("-- breadcrumbs trace a real path back to the root --");
+/* BreadcrumbList is the one type here that changes what a search result looks like
+   without needing per-article artwork: the raw URL under the title becomes a trail.
+   That only holds if the trail is true, so the last crumb must be the page's own
+   canonical and the middle crumb must be a page that actually exists. */
+var TRAILS = {};
+GUIDES.forEach(function(n){ TRAILS[n] = 3; });
+TRAILS["guides/index.html"] = 2;
+TRAILS["how-it-works.html"] = 2;
+Object.keys(TRAILS).forEach(function(n){
+  var b = ld(pages[n], "BreadcrumbList");
+  eq(n + " has a BreadcrumbList", b !== null && b !== "unparseable", true);
+  if (!b || b === "unparseable") return;
+  var items = b.itemListElement;
+  eq(n + " trail is " + TRAILS[n] + " deep", items.length, TRAILS[n]);
+  eq(n + " crumbs are numbered 1..n in order",
+     items.every(function(it, i){ return it.position === i + 1; }), true);
+  eq(n + " every crumb has a name and a url",
+     items.every(function(it){ return !!it.name && /^https:\/\//.test(it.item); }), true);
+  eq(n + " trail starts at the site root", items[0].item, SITE);
+  var canon = pages[n].match(/<link rel="canonical" href="([^"]+)"/);
+  eq(n + " last crumb is the page itself", !!canon && items[items.length - 1].item === canon[1], true);
+});
+/* A guide's middle crumb must be the guides index, not an invented path. */
+GUIDES.forEach(function(n){
+  var b = ld(pages[n], "BreadcrumbList");
+  eq(n + " middle crumb is the guides index",
+     b && b.itemListElement[1].item, SITE + "guides/");
+});
 
 var total = NAMES.reduce(function(a, n){ return a + words(pages[n]); }, 0) + guideWords;
 log("   total indexable prose: ~" + total + " words");
