@@ -151,8 +151,12 @@ ARTICLES.forEach(function(n){
   });
   /* Google truncates past 110 characters. */
   eq(n + " headline is within 110 characters", o.headline.length <= 110, true);
-  eq(n + " dates are ISO yyyy-mm-dd",
-     /^\d{4}-\d{2}-\d{2}$/.test(o.datePublished) && /^\d{4}-\d{2}-\d{2}$/.test(o.dateModified), true);
+  /* Full ISO 8601 with an offset. A bare yyyy-mm-dd is what this assertion used to
+     demand, and Google's Rich Results Test rejects it twice over: "Invalid datetime
+     value" and "missing a timezone". The test was enforcing the broken format. */
+  var ISO = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:Z|[+-]\d{2}:\d{2})$/;
+  eq(n + " datePublished is ISO 8601 with a timezone", ISO.test(o.datePublished), true);
+  eq(n + " dateModified is ISO 8601 with a timezone", ISO.test(o.dateModified), true);
   eq(n + " was not modified before it was published", o.dateModified >= o.datePublished, true);
   /* Schema that points somewhere other than the page's own canonical is worse than none. */
   var canon = pages[n].match(/<link rel="canonical" href="([^"]+)"/);
