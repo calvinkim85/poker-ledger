@@ -3,6 +3,10 @@
 set -e
 cd "$(dirname "$0")/.."
 python3 test/build.py
+# Delete last run's results before running. Without this a suite that crashes leaves
+# its previous .txt in place, and the summary reports those stale numbers as if they
+# were this run's — a green total for a suite that never executed.
+rm -f test/build/*.txt
 total_pass=0; total_fail=0; status=0
 for f in test/build/*.js; do
   osascript -l JavaScript "$f" >/dev/null 2>&1 || true

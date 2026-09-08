@@ -94,12 +94,12 @@ def build():
     html = open(SRC, encoding="utf-8").read()
     guide = re.search(r"<details class=\"guide\".*?</details>", html, re.S)
     guide_words = len(re.sub(r"<[^>]+>", " ", guide.group(0)).split()) if guide else 0
+    # Guides are globbed, not listed. The list used to be typed by hand here and again
+    # in pages.js, and a guide added to only one of them was silently untested.
     pages = ["privacy.html", "privacy-ko.html", "terms.html", "404.html",
-             "how-it-works.html", "guides/index.html",
-             "guides/chip-denominations.html", "guides/rebuys-and-late-entries.html",
-             "guides/being-the-banker.html", "guides/settlement-mistakes.html",
-             "guides/first-home-game.html", "guides/cash-game-or-tournament.html",
-             "guides/when-someone-cannot-pay.html"]
+             "how-it-works.html"] + sorted(
+                 "guides/" + f for f in os.listdir(os.path.join(ROOT, "guides"))
+                 if f.endswith(".html"))
     site = HARNESS + "\n".join([
         "var html = %s;" % js_string(html),
         "var head = %s;" % js_string(html[:html.find("</head>")]),

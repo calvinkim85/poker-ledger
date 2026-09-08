@@ -33,8 +33,12 @@ log("-- every indexable page is canonical and reachable --");
 NAMES.filter(function(n){ return n !== "404.html"; }).forEach(function(n){
   var p = pages[n];
   eq(n + " declares a canonical URL", /<link rel="canonical" href="https:\/\/[^"]+">/.test(p), true);
+  /* Read the match before indexing it. A page with no canonical tag used to throw here,
+     which aborted the whole suite rather than failing one assertion — and an aborted
+     suite is far harder to notice than a red line. */
+  var canon = p.match(/<link rel="canonical" href="([^"]+)"/);
   eq(n + " is listed in the sitemap",
-     sitemap.indexOf(p.match(/<link rel="canonical" href="([^"]+)"/)[1]) !== -1, true);
+     !!canon && sitemap.indexOf(canon[1]) !== -1, true);
 });
 eq("404.html is excluded from the index", /<meta name="robots" content="noindex">/.test(pages["404.html"]), true);
 eq("404.html is not in the sitemap", sitemap.indexOf("404.html") === -1, true);
@@ -113,8 +117,14 @@ eq("the app itself never carries a placeholder",
 log("-- there is enough original content to be worth indexing --");
 function words(p){ return p.replace(/<script[\s\S]*?<\/script>/g, " ")
                            .replace(/<[^>]+>/g, " ").split(/\s+/).length; }
-["how-it-works.html", "guides/chip-denominations.html", "guides/rebuys-and-late-entries.html",
- "guides/being-the-banker.html", "guides/settlement-mistakes.html"].forEach(function(n){
+/* Derived, never hand-listed. build.py globs guides/, so a new guide enrols itself
+   here the moment it exists. The previous hand-typed list had gone stale: three
+   guides were added to the site and to build.py but not to this assertion, so
+   nothing checked they were more than a stub. guides/index.html is a directory
+   listing rather than an article, so it is the one page held out. */
+["how-it-works.html"].concat(NAMES.filter(function(n){
+  return n.indexOf("guides/") === 0 && n !== "guides/index.html";
+})).forEach(function(n){
   eq(n + " carries a substantial article", words(pages[n]) > 450, true);
 });
 var total = NAMES.reduce(function(a, n){ return a + words(pages[n]); }, 0) + guideWords;
