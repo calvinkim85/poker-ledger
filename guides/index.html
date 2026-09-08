@@ -36,6 +36,74 @@
 (function(){try{var s=JSON.parse(localStorage.getItem("poker.ledger.v1")||"null");
 if(s&&(s.theme==="dark"||s.theme==="light"))document.documentElement.setAttribute("data-theme",s.theme);}catch(e){}})();
 </script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "CollectionPage",
+  "name": "Home poker guides",
+  "description": "Practical guides to running a home poker game: choosing stakes and chips, rebuy rules, being the banker, and settling up when the count does not balance.",
+  "url": "https://homepokerledger.com/guides/",
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://homepokerledger.com/guides/"
+  },
+  "inLanguage": "en",
+  "isPartOf": {
+    "@type": "WebSite",
+    "name": "Home Poker Ledger",
+    "url": "https://homepokerledger.com/"
+  },
+  "mainEntity": {
+    "@type": "ItemList",
+    "itemListOrder": "https://schema.org/ItemListUnordered",
+    "numberOfItems": 7,
+    "itemListElement": [
+      {
+        "@type": "ListItem",
+        "position": 1,
+        "url": "https://homepokerledger.com/guides/being-the-banker.html",
+        "name": "Being the banker at a home poker game"
+      },
+      {
+        "@type": "ListItem",
+        "position": 2,
+        "url": "https://homepokerledger.com/guides/cash-game-or-tournament.html",
+        "name": "Cash game or tournament"
+      },
+      {
+        "@type": "ListItem",
+        "position": 3,
+        "url": "https://homepokerledger.com/guides/chip-denominations.html",
+        "name": "Poker chip values and starting stacks"
+      },
+      {
+        "@type": "ListItem",
+        "position": 4,
+        "url": "https://homepokerledger.com/guides/first-home-game.html",
+        "name": "How to run your first home poker game"
+      },
+      {
+        "@type": "ListItem",
+        "position": 5,
+        "url": "https://homepokerledger.com/guides/rebuys-and-late-entries.html",
+        "name": "Poker rebuys and late entries"
+      },
+      {
+        "@type": "ListItem",
+        "position": 6,
+        "url": "https://homepokerledger.com/guides/settlement-mistakes.html",
+        "name": "Five ways a poker settlement goes wrong"
+      },
+      {
+        "@type": "ListItem",
+        "position": 7,
+        "url": "https://homepokerledger.com/guides/when-someone-cannot-pay.html",
+        "name": "When someone can't pay"
+      }
+    ]
+  }
+}
+</script>
 </head>
 <body>
 

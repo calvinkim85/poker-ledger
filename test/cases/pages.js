@@ -127,6 +127,49 @@ function words(p){ return p.replace(/<script[\s\S]*?<\/script>/g, " ")
 })).forEach(function(n){
   eq(n + " carries a substantial article", words(pages[n]) > 450, true);
 });
+log("-- every guide carries valid Article markup --");
+/* Derived from NAMES for the same reason the length check is: a guide added to the
+   site must not be able to ship without schema just because nobody edited a list.
+   The ItemList on guides/index.html is the drift risk here — it names every guide,
+   so adding one silently makes the index's own markup wrong. */
+function ld(p){
+  var m = p.match(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/);
+  if (!m) return null;
+  try { return JSON.parse(m[1]); } catch (e) { return "unparseable"; }
+}
+var ARTICLES = NAMES.filter(function(n){
+  return n.indexOf("guides/") === 0 && n !== "guides/index.html";
+});
+ARTICLES.forEach(function(n){
+  var o = ld(pages[n]);
+  eq(n + " has parseable JSON-LD", o !== null && o !== "unparseable", true);
+  if (!o || o === "unparseable") return;
+  eq(n + " is typed Article", o["@type"], "Article");
+  ["headline", "image", "datePublished", "dateModified", "author", "publisher",
+   "mainEntityOfPage"].forEach(function(k){
+    eq(n + " Article declares " + k, o[k] !== undefined && o[k] !== "", true);
+  });
+  /* Google truncates past 110 characters. */
+  eq(n + " headline is within 110 characters", o.headline.length <= 110, true);
+  eq(n + " dates are ISO yyyy-mm-dd",
+     /^\d{4}-\d{2}-\d{2}$/.test(o.datePublished) && /^\d{4}-\d{2}-\d{2}$/.test(o.dateModified), true);
+  eq(n + " was not modified before it was published", o.dateModified >= o.datePublished, true);
+  /* Schema that points somewhere other than the page's own canonical is worse than none. */
+  var canon = pages[n].match(/<link rel="canonical" href="([^"]+)"/);
+  eq(n + " schema URL matches its canonical",
+     !!canon && o.mainEntityOfPage["@id"] === canon[1] && o.url === canon[1], true);
+});
+var idx = ld(pages["guides/index.html"]);
+eq("guides/index.html is typed CollectionPage", idx && idx["@type"], "CollectionPage");
+eq("the index ItemList counts every guide and no others",
+   idx && idx.mainEntity.numberOfItems === ARTICLES.length &&
+   idx.mainEntity.itemListElement.length === ARTICLES.length, true);
+eq("every guide appears in the index ItemList",
+   ARTICLES.filter(function(n){
+     var c = pages[n].match(/<link rel="canonical" href="([^"]+)"/)[1];
+     return !idx.mainEntity.itemListElement.some(function(it){ return it.url === c; });
+   }), []);
+
 var total = NAMES.reduce(function(a, n){ return a + words(pages[n]); }, 0) + guideWords;
 log("   total indexable prose: ~" + total + " words");
 eq("the site as a whole is not a one-page thin site", total > 3000, true);
