@@ -190,7 +190,7 @@ log("-- the published contact is the domain's own address --");
    without touching the site, and no personal inbox is exposed. */
 ["privacy.html", "privacy-ko.html", "terms.html"].forEach(function(n){
   eq(n + " publishes the domain contact address",
-     /mailto:privacy@homepokerledger\.com/.test(pages[n]), true);
+     /mailto:service@homepokerledger\.com/.test(pages[n]), true);
 });
 Object.keys(pages).concat(["__app__"]).forEach(function(n){
   var p = n === "__app__" ? html : pages[n];
